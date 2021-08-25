@@ -9,4 +9,7 @@
 ```source bot-env/bin/activate```  
 **Windows**  
 ```bot-env\Scripts\Activate.bat```  
-4. Install dependencies
+4. Install dependencies  
+```pip install -r requirements.txt```  
+5. Run discord bot
+```python3 ./main.py
