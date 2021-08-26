@@ -21,7 +21,6 @@ Install Docker and Docker-compose
 1. Clone this respository  
 ```git clone https://github.com/nagdb```  
 ```cd ./nagdb```  
-2. Create a virtual environment for Python to setup dependencies  
 2. Create .env and write with this format  
 ```DISCORD_TOKEN={DISCORD_TOKEN (No brackets, just the token)}```
 3. Compose discord bot  
