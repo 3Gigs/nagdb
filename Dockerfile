@@ -8,7 +8,8 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # Instlal gcc because for some reason yarl needs it
-RUN sudo apt install gcc
+RUN apt update && \
+    apt -y install gcc
 
 # Install pip requirements
 COPY requirements.txt .
