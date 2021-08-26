@@ -12,4 +12,4 @@
 4. Install dependencies  
 ```pip install -r requirements.txt```  
 5. Run discord bot
-```python3 ./main.py
+```python3 ./nagdb.py```
