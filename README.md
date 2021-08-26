@@ -11,5 +11,7 @@
 ```bot-env\Scripts\Activate.bat```  
 4. Install dependencies  
 ```pip install -r requirements.txt```  
+6. Create .env and write with this format  
+```DISCORD_TOKEN={DISCORD_TOKEN (No brackets, just the token)}```
 5. Run discord bot
 ```python3 ./nagdb.py```
