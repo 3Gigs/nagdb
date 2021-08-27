@@ -9,7 +9,7 @@ ENV PYTHONUNBUFFERED=1
 
 # Instlal needed dependencies
 RUN apt update && \
-    apt -y install gcc opus-tools 
+    apt -y install gcc libopus0
 # Install pip requirements
 COPY requirements.txt .
 RUN python -m pip install -r requirements.txt
