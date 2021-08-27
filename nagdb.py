@@ -1,13 +1,19 @@
 from dotenv import load_dotenv
 import os
 import discord
+from discord.ext import commands
 
 load_dotenv()
 
-client = discord.Client()
+bot = commands.Bot(command_prefix='?> ')
 
-@client.event
+extensions = os.listdir("./Cogs")
+for xd in extensions:
+    if xd.endswith(".py"):
+        bot.load_extension(f"Cogs.{xd[:-3]}")
+
+@bot.event
 async def on_ready():
-    print('We have logged in as {0.user}'.format(client))
+    print('We have logged in as {0.user}'.format(bot))
 
-client.run(os.getenv("DISCORD_TOKEN"))
+bot.run(os.getenv("DISCORD_TOKEN"), bot=True, reconnect=True)
