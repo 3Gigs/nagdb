@@ -8,7 +8,9 @@ class MusicPlayer(commands.Cog, name="Music Player"):
         self._last_member = None
     
     @commands.command(name="play")
-    async def joinVC(self, ctx: commands.Context, arg):
+    async def joinVC(self, ctx: commands.Context):
+        if(ctx.args):
+            await ctx.reply("You must provide something to play!")
         """Join Voice Channel"""
         channel: VoiceChannel = ctx.author.voice.channel
         await channel.connect()
