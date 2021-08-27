@@ -9,7 +9,7 @@ ENV PYTHONUNBUFFERED=1
 
 # Instlal needed dependencies
 RUN apt update && \
-    apt -y install gcc libopus0
+    apt -y install gcc libopus0 libopus-dev
 # Install pip requirements
 COPY requirements.txt .
 RUN python -m pip install -r requirements.txt
