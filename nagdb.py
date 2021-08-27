@@ -33,5 +33,7 @@ bot.add_command(reload)
 @bot.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(bot))
+    if(not discord.opus.is_loaded()):
+        discord.opus.load_opus("libopus.so")
 
 bot.run(os.getenv("DISCORD_TOKEN"), bot=True, reconnect=True)
