@@ -7,10 +7,9 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Turns off buffering for easier container logging
 ENV PYTHONUNBUFFERED=1
 
-# Instlal gcc because for some reason yarl needs it
+# Instlal needed dependencies
 RUN apt update && \
-    apt -y install gcc
-
+    apt -y install gcc opus-tools 
 # Install pip requirements
 COPY requirements.txt .
 RUN python -m pip install -r requirements.txt
