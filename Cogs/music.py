@@ -4,8 +4,10 @@ from discord.ext import commands
 
 class MusicPlayer(commands.Cog, name="Music Player"):
     def __init__(self, bot):
-        self.bot = bot
-        self._last_member = None
+        self._bot = bot
+    
+    async def parseArgs(args: str):
+        print("br")
     
     @commands.command(name="play")
     async def joinVC(self, ctx: commands.Context):
@@ -14,7 +16,8 @@ class MusicPlayer(commands.Cog, name="Music Player"):
         """Join Voice Channel"""
         channel: VoiceChannel = ctx.author.voice.channel
         await channel.connect()
+        parseArgs(ctx.args)
         
 
-def setup(bot):
-    bot.add_cog(MusicPlayer(bot))
+def setup(_bot):
+    _bot.add_cog(MusicPlayer(_bot))
