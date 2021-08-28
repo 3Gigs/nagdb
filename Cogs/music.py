@@ -62,8 +62,8 @@ class MusicPlayer(commands.Cog, name="Music Player"):
             ctx::commands.Context
         
         Returns:
-            Returns the VoiceClient provided by connect(), or None if already
-            connected to the channel
+            Returns the VoiceClient provided by connect() or move_to(), or 
+            None if already connected to the channel
 
         """
         if ctx.voice_client is None:
@@ -73,8 +73,9 @@ class MusicPlayer(commands.Cog, name="Music Player"):
             else:
                 await ctx.reply("No voice channel to connect to")
                 return None
-        else:
-            return ctx.voice_client
+        elif ctx.voice_client is not None:
+            channel = ctx.author.voice.channel
+            return await ctx.voice_client.move_to(channel)
 
     @commands.command(name="play")
     async def playCommand(self, ctx: commands.Context, arg1):
