@@ -18,13 +18,17 @@ class MusicPlayer(commands.Cog, name="Music Player"):
     async def parseArgs(args: str, userVC: VoiceClient):
         userVC.play(discord.FFmpegOpusAudio())
 
-    @commands.command(name="play")
-    async def joinVC(self, ctx: commands.Context):
+    async def joinVC(self, ctx: commands.Context) -> VoiceClient:
         if(not ctx.args):
             await ctx.reply("You must provide something to play!")
         """Join Voice Channel"""
         channel: VoiceChannel = ctx.author.voice.channel
         vc: VoiceClient = await channel.connect()
+        return vc
+
+    @commands.command(name="play")
+    async def playMusic(self, ctx: commands.Context):
+        vc = await self.joinVC(ctx)
         if(not vc.is_playing()):
             await self.parseArgs(ctx.args, vc)
         
