@@ -11,6 +11,7 @@ class MusicPlayer(commands.Cog, name="Music Player"):
     
     @commands.command(name="play")
     async def joinVC(self, ctx: commands.Context):
+        """TODO: Do something about this I'm tired"""
         if(ctx.args):
             await ctx.reply("You must provide something to play!")
         """Join Voice Channel"""
