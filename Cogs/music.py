@@ -4,7 +4,7 @@ from discord import VoiceChannel
 from discord import FFmpegPCMAudio
 from discord import utils
 from discord.ext import commands
-from validators import url
+from asyncio import get_event_loop
 import youtube_dl
 import os
 
@@ -66,13 +66,15 @@ class MusicPlayer(commands.Cog, name="Music Player"):
             connected to the channel
 
         """
-        if ctx.voice_client is not None:
-            channel: VoiceChannel = ctx.author.voice.channel
-            channel.connect()
-            return vc
+        if ctx.voice_client is None:
+            if ctx.author.voice:
+                channel: VoiceChannel = ctx.author.voice.channel
+                return await channel.connect() 
+            else:
+                await ctx.reply("No voice channel to connect to")
+                return None
         else:
-            ctx.reply("No voice channel to connect to")
-            return None
+            return ctx.voice_client
 
     @commands.command(name="play")
     async def playCommand(self, ctx: commands.Context, arg1):
@@ -81,15 +83,29 @@ class MusicPlayer(commands.Cog, name="Music Player"):
         if vc is None:
             return
 
-        ydl_opts = {
-            "prefer_ffmpeg": True,
-            "logger": Logger()
+        if vc.is_playing():
+            vc.stop()
+            
+        ydl_opts= {
+        'format': 'bestaudio/best',
+        'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
+        'restrictfilenames': True,
+        'noplaylist': True,
+        'nocheckcertificate': True,
+        'ignoreerrors': False,
+        'logtostderr': False,
+        'quiet': True,
+        'no_warnings': True,
+        'default_search': 'auto',
+        'source_address': '0.0.0.0'
         }
-        """
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([arg1])
-        """
-        vc.play(FFmpegPCMAudio("output.mp3"))
+        ffmpeg_options = {
+            'options': '-vn'
+        }
+        with youtube_dl.YoutubeDL(ydl_opts) as ytdl:
+            data = ytdl.extract_info(arg1, download = False)
+            url = data['url']
+            vc.play(FFmpegPCMAudio(url))
 
 def setup(_bot):
     _bot.add_cog(MusicPlayer(_bot))
