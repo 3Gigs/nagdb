@@ -1,6 +1,6 @@
 # Not Another Generic Discord Bot!  
 A Discord Bot with written with Discord.py  
-Uses Google style for docstrings & stuff  
+Uses PEP-257 style for docstrings & stuff  
 ## Running
 1. Clone this repository and cd into cloned directory
 ```git clone https://github.com/nagdb```  
