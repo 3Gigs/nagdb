@@ -1,6 +1,6 @@
 from discord.ext import commands
 
-class mirror(commands.Cog, name="Miror Msg"):
+class mirror(commands.Cog, name="Mirror Msg"):
     def __init__(self, bot):
         self.bot = bot
         self._last_member = None
