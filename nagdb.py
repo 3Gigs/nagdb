@@ -24,7 +24,10 @@ for xd in extensions:
 async def reload(ctx):
     for xd in extensions:
         if xd.endswith(".py"):
-            bot.reload_extension(f"Cogs.{xd[:-3]}")
+            try:
+                bot.reload_extension(f"Cogs.{xd[:-3]}")
+            except ExtensionNotLoaded:
+                bot.load_extension(f"Cogs.{xd[:-3]}")
     await ctx.send("Cogs reloaded")
 
 bot.add_command(reload) 
