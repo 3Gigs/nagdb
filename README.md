@@ -5,13 +5,18 @@ A Discord Bot written in Discord.js and Typescript
 ``` git clone https://github.com/3Gigs/nagdb ```  
 2. Install depedencies  
 ``` npm install ```  
-3. Compile typescript files
+3. Compile typescript files  
 ``` npx tsc ```  
 4. Make config.json and put all secret bot stuff here  
 ```  
+{
     "clientId": "your client id", 
-    "guildId": "your guild id",
+    "guildId": "your guild id for registering local slash commands",
     "token": "your bot token"
+}
 ```  
 5. Run bot  
-``` node . ```
+``` node . ```  
+
+## Generate documentation
+``` npx tsdocs src/* ```
