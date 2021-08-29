@@ -7,8 +7,9 @@
         "skipLibCheck": true,
         "noEmitOnError": true,
         "forceConsistentCasingInFileNames": true,
-        "outDir": "./app/"
+        "resolveJsonModule": true,
+        "outDir": "./build"
     },
-    "include": ["bot/*"],
+    "include": ["src/*", "commands/*"],
     "exclude": ["node_modules"]
 }
