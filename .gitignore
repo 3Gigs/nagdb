@@ -1,8 +1,4 @@
-/bot-test
-/bot-env
-.env
-__pycache__
-/.vscode
-nagdb.code-workspace
-*.debug.*
-*.log
+.package-lock.json
+node_modules/
+build/
+config.json
