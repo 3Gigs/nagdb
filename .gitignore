@@ -1,9 +1,0 @@
-/bot-test
-/bot-env
-.env
-__pycache__
-/.vscode
-nagdb.code-workspace
-*.debug.*
-*.log
-*.mp3

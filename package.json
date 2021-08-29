@@ -1,0 +1,23 @@
+{
+  "name": "nagdb",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./app/nagdb.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/3Gigs/nagdb.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/3Gigs/nagdb/issues"
+  },
+  "homepage": "https://github.com/3Gigs/nagdb#readme",
+  "devDependencies": {
+    "typescript": "^4.4.2"
+  }
+}

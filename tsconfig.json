@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "target": "ES2015",
+        "module": "commonjs",
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "noEmitOnError": true,
+        "forceConsistentCasingInFileNames": true,
+        "outDir": "./app/"
+    },
+    "include": ["bot/*"],
+    "exclude": ["node_modules"]
+}
