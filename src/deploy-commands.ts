@@ -13,14 +13,13 @@ const commandFiles = fs.readdirSync(__dirname + "/../commands")
  * @return void
 */
 export const deployLocal = () => {
+    console.log("Deploying local commands to test server");
     commandFiles.forEach(file => {
         const command = require(`../commands/${file}`);
         commands.push(command.data.toJSON());
 
         (async () => {
             try {
-                console.log("Deploying local commands to test server");
-
                 await rest.put(
                     Routes.applicationGuildCommands(clientId, guildId),
                     { body: commands }
