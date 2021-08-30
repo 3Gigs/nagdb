@@ -1,4 +1,4 @@
-import { channelMention, SlashCommandBuilder } from "@discordjs/builders";
+import { SlashCommandBuilder } from "@discordjs/builders";
 import { CommandInteraction, GuildMember } from "discord.js";
 import { joinVoiceChannel } from "@discordjs/voice"
 import { getVoiceConnection } from "@discordjs/voice"
@@ -29,7 +29,7 @@ module.exports = {
                 adapterCreator: author.guild.voiceAdapterCreator
             })
         })();
-        process.on("SIGTERM", () => {
+        process.on("SIGINT", () => {
             console.log("Clean up hanging voice connection");
             (() => {
                 const guildId: string = interaction.guildId as string;
