@@ -4,10 +4,8 @@ import { deployLocal } from "./deploy-commands"
 import { commandHandler } from "./commandHandler"
 
 // Create a new client instance
-const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_VOICE_STATES] });
 const cmdHandler = new commandHandler(client);
-
-deployLocal();
 
 client.once('ready', () => {
 	console.log('Ready!');

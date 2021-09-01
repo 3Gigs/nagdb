@@ -15,7 +15,7 @@ const commandFiles = fs.readdirSync(__dirname + "/../commands")
 export const deployLocal = () => {
     console.log("Deploying local commands to test server");
     commandFiles.forEach(file => {
-        const command = require(`../commands/${file}`);
+        const command = require(`./commands/${file}`);
         commands.push(command.data.toJSON());
 
         (async () => {

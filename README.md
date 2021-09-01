@@ -19,4 +19,4 @@ A Discord Bot written in Discord.js and Typescript
 ``` node . ```  
 
 ## Generate documentation
-``` npx tsdocs src/* ```
+``` npx typedoc src/* ```

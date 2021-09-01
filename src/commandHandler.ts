@@ -1,15 +1,16 @@
+/**@module commandHandler */
 import { Client, Collection } from "discord.js"
 import path from "path"
 import fs from "fs";
 
-/**
- * Add a commands collection to Discord.js' Client interface
- *
- * @interface clientCommands
- * @extends {Client}
- * @property {Collection}
- */
-interface clientCommands extends Client{
+/**Discord.js' Client but with commands collection added */
+export interface clientCommands extends Client {
+    /**
+     * A collection of commands
+     * 
+     * @type {Collection<string, unknown>}
+     * @memberof clientCommands
+     */
     commands?: Collection<string, unknown>
 }
 
@@ -42,11 +43,12 @@ export class commandHandler {
      * @memberof commandHandler
      */
     refreshCommandDir() {
-        this.commandFiles = fs.readdirSync(__dirname + "/../commands")
+        this.commandFiles = fs.readdirSync(__dirname + "/commands")
         this.commandFiles.forEach(file => {
             const command = require(`../commands/${file}`);
             this.client.commands?.set(command.data.name, command)
         })
+        console.log("Command files refreshed!");
     }
 
     /**
@@ -57,6 +59,7 @@ export class commandHandler {
      */
     attachCommandListener() {
         this.client.on("interactionCreate", async interaction => {
+            console.log("Interaction received!");
             if(!interaction.isCommand()) return;
 
             const command: any = this
