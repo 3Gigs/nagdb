@@ -1,10 +1,11 @@
 import { Client, Intents } from "discord.js";
 import {token} from "../config.json"
-import { deployLocal } from "./deploy-commands"
 import { commandHandler } from "./commandHandler"
+import { nagLogger } from "./modules/nagLogger"
 
 // Create a new client instance
-const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_VOICE_STATES] });
+const client = new Client({ intents: [Intents.FLAGS.GUILDS, 
+            Intents.FLAGS.GUILD_VOICE_STATES] });
 const cmdHandler = new commandHandler(client);
 
 client.once('ready', () => {

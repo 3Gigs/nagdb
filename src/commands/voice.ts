@@ -9,17 +9,6 @@ import { joinVoiceChannel, AudioPlayer, VoiceConnection,
          PlayerSubscription} from "@discordjs/voice"
 import {stream as ytdl} from "play-dl"
 
-
-export const joinVC = (author: GuildMember): VoiceConnection  => {
-    console.log("Joining voice channel...");
-    const connection = joinVoiceChannel({
-        channelId: author.voice.channelId as string,
-        guildId: author.guild.id as string,
-        adapterCreator: author.guild.voiceAdapterCreator
-    })
-    return connection;
-}
-
 export const playMusic = async (connection: VoiceConnection, 
             player: AudioPlayer, subscription: PlayerSubscription, input: string) => {
     const stream = await ytdl(input);

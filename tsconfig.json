@@ -8,8 +8,9 @@
         "noEmitOnError": true,
         "forceConsistentCasingInFileNames": true,
         "resolveJsonModule": true,
-        "outDir": "./build"
+        "outDir": "./build",
+        "experimentalDecorators": true
     },
-    "include": ["src/*", "src/commands/*"],
+    "include": ["src/*", "src/commands/*", "src/modules"],
     "exclude": ["node_modules"]
 }
