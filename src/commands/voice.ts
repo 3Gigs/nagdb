@@ -74,12 +74,6 @@ module.exports = {
                 noSubscriber: NoSubscriberBehavior.Play
             }
         });
-        const input = interaction.options.getString("input");
-        const connection = joinVC(interaction.member as GuildMember);
-        const subscription = connection.subscribe(player);
-        if(input && subscription) {
-            playMusic(connection, player, subscription, input);
-        }
         await interaction.reply("Attempting to play music...");
     },
 };

@@ -73,7 +73,7 @@ export class nagLogger {
         return function(target: Object, 
                 key: string | symbol, 
                 descriptor: PropertyDescriptor) : void {
-                    nagLogger.logger.log(logLevel, (key.toString() + m));
+                    nagLogger.logger.log(logLevel, (key.toString() + "|" + m));
                 }
     }
 
