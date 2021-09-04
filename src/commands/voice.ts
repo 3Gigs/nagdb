@@ -41,18 +41,6 @@ export const playMusic = async (connection: VoiceConnection,
         console.error(error);
     })
     setTimeout(() => {player.stop(); console.log("Player stopped")}, 5_000);
-    /*
-    if(!music) {
-        console.error("Audio resource invalid");
-    }
-    player.play(music);
-    setTimeout(() => {player.stop(); console.log("Player stopped")}, 5_000);
-    const subscription = connection.subscribe(player);
-    if(subscription === undefined) {
-        console.error("Cannot subscribe to voice connnection")
-        return;
-    }
-    */
 }
 
 module.exports = {
