@@ -133,14 +133,21 @@ export class nagPlayer {
     }
 
     /**
-     * Adds song to queue
+     * Adds a song to queue, can directly pass a Song object or a url link
      *
      * @param {string} input
      * @memberof nagPlayer
      */
+    addSong(music: Song): Song;
+    addSong(url: string): Song; 
     @nagLogger.getInstance().log("debug", "Adding song to queue...")
-    addSong(music: Song) {
-        this.songQueue.enqueue(music);
+    addSong(overload: any): any {
+        if(typeof overload === "string") {
+            CreateSongFromLink(overload);
+        }
+        if(typeof overload !== "undefined") {
+            this.songQueue.enqueue(overload);
+        }
     }
 
     /**
@@ -159,12 +166,14 @@ export class nagPlayer {
         else {
             throw new Error("No songs in queue")
         }
+
+        return song;
     }
 
     @nagLogger.getInstance().log("debug", "Skipping music")
-    skipMusic() {
+    skipMusic(): Song | undefined {
         if(this.player.stop()) {
-            this.playMusic();
+            return this.playMusic();
         }
         else {
             throw new Error("Error while skipping music");
