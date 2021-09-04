@@ -97,7 +97,7 @@ export class nagPlayer {
      * @memberof nagPlayer
      * 
      */
-    private connection: VoiceConnection | undefined;
+    private connection: VoiceConnection;
     private songQueue: songQueue;
     private player: AudioPlayer;
 
@@ -106,30 +106,14 @@ export class nagPlayer {
      * @param {string} input
      * @memberof nagPlayer
      */
-    constructor() {
+    constructor(connection: VoiceConnection) {
+        this.connection = connection;
         this.player = new AudioPlayer( {
             behaviors: {
                 noSubscriber: NoSubscriberBehavior.Play
             }
         })
         this.songQueue = new songQueue();
-    }
-
-    /**
-     * Join Voice Channel
-     *
-     * @param {GuildMember} author
-     * @return {*}  {VoiceConnection}
-     * @memberof nagPlayer
-     */
-    @nagLogger.getInstance().log("debug", "Joining voice channel")
-    joinVC(author: GuildMember): VoiceConnection {
-        this.connection = joinVoiceChannel({
-            channelId: author.voice.channelId as string,
-            guildId: author.guild.id as string,
-            adapterCreator: author.guild.voiceAdapterCreator
-        })
-        return this.connection;
     }
 
     /**
@@ -161,6 +145,7 @@ export class nagPlayer {
         const song = this.songQueue.dequeue();
 
         if(song) {
+            this.connection.subscribe(this.player);
             this.player.play(song.resource);
         } 
         else {

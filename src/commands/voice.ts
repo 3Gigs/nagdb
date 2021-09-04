@@ -1,48 +1,23 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
+import { getVoiceConnection, joinVoiceChannel, VoiceConnection } from "@discordjs/voice";
 import { CommandInteraction, GuildMember } from "discord.js";
-import { joinVoiceChannel, AudioPlayer, VoiceConnection, 
-         createAudioResource, AudioPlayerStatus,
-         entersState, 
-         AudioResource,
-         VoiceConnectionStatus,
-         NoSubscriberBehavior,
-         PlayerSubscription} from "@discordjs/voice"
-import {stream as ytdl} from "play-dl"
+import { nagLogger } from "../modules/nagLogger";
+import { nagPlayer } from "../modules/nagPlayer";
 
-export const playMusic = async (connection: VoiceConnection, 
-            player: AudioPlayer, subscription: PlayerSubscription, input: string) => {
-    const stream = await ytdl(input);
-    let music: AudioResource | undefined = undefined;
-
-    if(stream) {
-        music = createAudioResource(stream.stream, {
-            inlineVolume: true, inputType: stream.type
-        });
-    }else {
-        console.error("Cannot load music stream");
-        return;
-    }
-    if(subscription) {
-        console.log("Subscribed to voice connection!")
-    } else {
-        console.error("Cannot subscribe to voice connection!");
-        return;
-    }
-
-    await player.play(music);
-    try {
-        await entersState(player, AudioPlayerStatus.Playing, 5_000);
-        console.log("Playing music!");
-    }
-    catch (error) {
-        console.log(error);
-    }
-    player.on("error", (error) => {
-        console.error(error);
+export /**
+ * Joins VC
+ *
+ * @param {GuildMember} author
+ * @return {*}  {VoiceConnection}
+ */
+const joinVC = function (author: GuildMember): VoiceConnection {
+    const connection = joinVoiceChannel({
+        channelId: author.voice.channelId as string,
+        guildId: author.guild.id as string,
+        adapterCreator: author.guild.voiceAdapterCreator
     })
-    setTimeout(() => {player.stop(); console.log("Player stopped")}, 5_000);
+    return connection;
 }
-
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("play")
@@ -57,11 +32,23 @@ module.exports = {
                   .setRequired(false)
         ),
     async execute(interaction: CommandInteraction) {
-        const player = new AudioPlayer({
-            behaviors: {
-                noSubscriber: NoSubscriberBehavior.Play
-            }
-        });
         await interaction.reply("Attempting to play music...");
+        const input = interaction.options.getString("input");
+        if(!input) {
+            interaction.reply("Invalid input!");
+            return;
+        }
+
+        if(interaction.guild !== null) {
+            let connection = getVoiceConnection(interaction.guild.id);
+            if(!connection) {
+                connection = joinVC(interaction.member as GuildMember);
+            }
+            const player = new nagPlayer(connection);
+            player.addSong(input);
+        } 
+        else {
+            interaction.reply("You are not sending this from a valid Guild!");
+        }
     },
 };
