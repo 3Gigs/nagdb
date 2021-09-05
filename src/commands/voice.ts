@@ -2,7 +2,7 @@ import { SlashCommandBuilder } from "@discordjs/builders";
 import { getVoiceConnection, joinVoiceChannel, VoiceConnection } from "@discordjs/voice";
 import { CommandInteraction, GuildMember } from "discord.js";
 import { nagLogger } from "../modules/nagLogger";
-import { nagPlayer } from "../modules/nagPlayer";
+import { nagPlayer } from "../modules/Music_Bot/nagPlayer";
 
 export /**
  * Joins VC
