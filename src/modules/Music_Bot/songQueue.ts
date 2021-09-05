@@ -1,6 +1,5 @@
 import { AudioResource, createAudioResource } from "@discordjs/voice";
 import { validate, video_info, stream, validate_playlist, playlist_info } from "play-dl";
-import { Stream } from "play-dl/dist/YouTube/classes/LiveStream";
 import { PlayList } from "play-dl/dist/YouTube/classes/Playlist";
 import { nagLogger } from "../nagLogger";
 
@@ -58,7 +57,7 @@ export class songQueue {
      */
     @nagLogger.getInstance().log("debug", "Adding song to queue...")
     async addSongs(url: string) {
-        const song = await CreateSongsFromLink(url);
+        const song = await createSongsFromLink(url);
         if(!song) {
             throw new Error("Invalid song!");
         }
@@ -90,7 +89,7 @@ export class songQueue {
  * @return {*}  {(Song | SongList)}
  */
 // TODO: Convert this to return a Song array
-export async function CreateSongsFromLink (input: string): 
+export async function createSongsFromLink (input: string): 
         Promise< Song[] | undefined> 
 {
     if(validate(input)) {

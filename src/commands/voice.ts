@@ -45,7 +45,7 @@ module.exports = {
                 connection = joinVC(interaction.member as GuildMember);
             }
             const player = new nagPlayer(connection);
-            player.addSong(input);
+            player.addSongs(input);
         } 
         else {
             interaction.reply("You are not sending this from a valid Guild!");
