@@ -31,17 +31,23 @@ export interface video_details {
     private: any;
 }
 
-/**
- * Simple songQueue implementation
- *
+/*
+ * 
+ * @note Used in songQueue to store songs
  * @export
- * @class songQueue
  */
 export interface Song {
     resource: AudioResource,
     songDetails: video_details
 }
 
+/**
+ * Simple songQueue implementation
+ *
+ * @export
+ * @note Don't directly use this for music bots! Use nagPlayer class instead!
+ * @class songQueue
+ */
 export class songQueue {
     private queue: Array<Song>;
 
@@ -60,9 +66,6 @@ export class songQueue {
         const song = await createSongsFromLink(url);
         if(!song) {
             throw new Error("Invalid song!");
-        }
-        if("songDetails" in song) {
-
         }
     }; 
 
@@ -90,7 +93,7 @@ export class songQueue {
  */
 // TODO: Convert this to return a Song array
 export async function createSongsFromLink (input: string): 
-        Promise< Song[] | undefined> 
+        Promise<Song[] | undefined> 
 {
     if(validate(input)) {
         let songList: Array<Song> = [];

@@ -1,9 +1,10 @@
 import { AudioPlayer, 
+        AudioPlayerStatus, 
         NoSubscriberBehavior, 
+        PlayerSubscription, 
         VoiceConnection } from "@discordjs/voice";
 import { nagLogger } from "../nagLogger";
-import { createSongsFromLink, Song, songQueue } from "./songQueue";
-
+import { createSongsFromLink, Song, songQueue, video_details } from "./songQueue";
 
 /**
  * Discord bot music player implementation
@@ -20,8 +21,10 @@ export class nagPlayer {
      * 
      */
     private connection: VoiceConnection;
+    private subscription: PlayerSubscription;
     private songQueue: songQueue;
     private player: AudioPlayer;
+    private willPlayAll: boolean = false;
 
     /**
      * Creates an instance of nagPlayer.
@@ -35,20 +38,20 @@ export class nagPlayer {
                 noSubscriber: NoSubscriberBehavior.Play
             }
         })
+        this.subscription = this
+                .connection
+                .subscribe(this.player) as PlayerSubscription;
         this.songQueue = new songQueue();
     }
 
-    get getPlayer() {
-        return this.player;
-    }
-
     /**
-     *
+     * Add song to queue
      *
      * @param {string} url
      * @memberof nagPlayer
      * @throws An Error if cannot unable to create Song array
      */
+    @nagLogger.getInstance().log("debug", "Adding song to queue...")
     async addSongs(url: string) {
         let songList = await createSongsFromLink(url);
         if(songList) {
@@ -82,6 +85,36 @@ export class nagPlayer {
         return song;
     }
 
+    /**
+     * Plays all music from queue
+     *
+     * @note Adds an event listener that plays Songs when AudioPlayer is Idle, 
+     * will remove itself when there's no songs in queue
+     * @memberof nagPlayer
+     * @callback {function(vid_details: Song | undefined): void} Will return
+     */
+    playAll(func: (song: video_details | undefined) => void) {
+        // Will not execute below if already 
+        if(!this.willPlayAll) {
+            // Play current song
+            const song = this.nextSong();
+            func(song.songDetails);
+            const callback = async () => {
+                try {
+                    this.nextSong();
+                    func(song.songDetails);
+                }
+                catch (error) {
+                    this.willPlayAll = false;
+                    this.player.removeListener(AudioPlayerStatus.Idle, callback);
+                    func(undefined);
+                } 
+            }
+            this.willPlayAll = true;
+            this.player.on(AudioPlayerStatus.Idle, callback)
+        }
+    }
+
     @nagLogger.getInstance().log("debug", "Skipping music")
     skipMusic(): Song | undefined {
         if(this.player.stop()) {
@@ -91,4 +124,5 @@ export class nagPlayer {
             throw new Error("Error while skipping music");
         }
     }
+
 }

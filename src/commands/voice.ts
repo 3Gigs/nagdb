@@ -1,16 +1,21 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
-import { AudioPlayerStatus, getVoiceConnection, joinVoiceChannel, VoiceConnection } from "@discordjs/voice";
-import { CommandInteraction, GuildMember } from "discord.js";
+import { getVoiceConnection, 
+        joinVoiceChannel, 
+        VoiceConnection } from "@discordjs/voice";
+import { CommandInteraction, 
+        GuildMember } from "discord.js";
 import { nagLogger } from "../modules/nagLogger";
 import { nagPlayer } from "../modules/Music_Bot/nagPlayer";
+import { guildPlayers } from "../modules/Music_Bot/guildPlayers";
 
-export /**
+
+/**
  * Joins VC
  *
  * @param {GuildMember} author
  * @return {*}  {VoiceConnection}
  */
-const joinVC = function (author: GuildMember): VoiceConnection {
+export const joinVC = function (author: GuildMember): VoiceConnection {
     const connection = joinVoiceChannel({
         channelId: author.voice.channelId as string,
         guildId: author.guild.id as string,
@@ -18,6 +23,7 @@ const joinVC = function (author: GuildMember): VoiceConnection {
     })
     return connection;
 }
+
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("play")
@@ -35,28 +41,42 @@ module.exports = {
         await interaction.reply("Attempting to play music...");
         const input = interaction.options.getString("input");
         if(!input) {
-            interaction.reply("Invalid input!");
+            interaction.followUp("Invalid input!");
             return;
         }
 
         if(interaction.guild !== null) {
-            let connection = getVoiceConnection(interaction.guild.id);
-            if(!connection) {
-                connection = joinVC(interaction.member as GuildMember);
+            let player = guildPlayers.get(interaction.guild.id);
+            if(!player) {
+                let connection = getVoiceConnection(interaction.guild.id);
+                if(!connection) {
+                    connection =  joinVC(interaction.member as GuildMember);
+                }
+                player = new nagPlayer(connection);
+                guildPlayers.set(interaction.guild.id, player);
             }
-            const player = new nagPlayer(connection);
+
             try {
-                player.addSongs(input);
-                player.getPlayer.on(AudioPlayerStatus.Idle, () => {
-                    player.nextSong();
-                });
+                await player.addSongs(input);
+                await interaction.followUp("Adding songs to queue...") 
             }
             catch(error) {
-                interaction.reply("Invalid input!");
+                interaction.followUp("Could not add music to queue!")
+                console.error(error);
             }
+            player.playAll((details) => {
+                if(details) {
+                        interaction.followUp("♫ Now playing ♫\n" + 
+                        details.url);
+                }
+                else {
+                    interaction.followUp("No songs in queue, stopping....");
+                }
+            })
         } 
         else {
-            interaction.reply("You are not sending this from a valid Guild!");
+            interaction.followUp("You are not sending this"
+                    + "from a valid Guild!");
         }
     },
 };

@@ -45,7 +45,7 @@ export class commandHandler {
     refreshCommandDir() {
         this.commandFiles = fs.readdirSync(__dirname + "/commands")
         this.commandFiles.forEach(file => {
-            const command = require(`../commands/${file}`);
+            const command = require(`./commands/${file}`);
             this.client.commands?.set(command.data.name, command)
         })
         console.log("Command files refreshed!");
