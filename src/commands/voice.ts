@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
-import { getVoiceConnection, joinVoiceChannel, VoiceConnection } from "@discordjs/voice";
+import { AudioPlayerStatus, getVoiceConnection, joinVoiceChannel, VoiceConnection } from "@discordjs/voice";
 import { CommandInteraction, GuildMember } from "discord.js";
 import { nagLogger } from "../modules/nagLogger";
 import { nagPlayer } from "../modules/Music_Bot/nagPlayer";
@@ -45,7 +45,15 @@ module.exports = {
                 connection = joinVC(interaction.member as GuildMember);
             }
             const player = new nagPlayer(connection);
-            player.addSongs(input);
+            try {
+                player.addSongs(input);
+                player.getPlayer.on(AudioPlayerStatus.Idle, () => {
+                    player.nextSong();
+                });
+            }
+            catch(error) {
+                interaction.reply("Invalid input!");
+            }
         } 
         else {
             interaction.reply("You are not sending this from a valid Guild!");

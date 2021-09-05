@@ -38,6 +38,10 @@ export class nagPlayer {
         this.songQueue = new songQueue();
     }
 
+    get getPlayer() {
+        return this.player;
+    }
+
     /**
      *
      *
@@ -65,11 +69,10 @@ export class nagPlayer {
      * @throws An Error if no song in queue
      */
     @nagLogger.getInstance().log("debug", "Playing music from queue...")
-    playMusic() {
+    nextSong() {
         const song = this.songQueue.dequeue();
 
         if(song) {
-            this.connection.subscribe(this.player);
             this.player.play(song.resource);
         } 
         else {
@@ -82,7 +85,7 @@ export class nagPlayer {
     @nagLogger.getInstance().log("debug", "Skipping music")
     skipMusic(): Song | undefined {
         if(this.player.stop()) {
-            return this.playMusic();
+            return this.nextSong();
         }
         else {
             throw new Error("Error while skipping music");
