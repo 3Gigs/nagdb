@@ -16,7 +16,7 @@ import { guildPlayers } from "../modules/Music_Bot/guildPlayers";
  * @param {GuildMember} author
  * @return {*}  {VoiceConnection}
  */
-export const joinVC = function (author: GuildMember): VoiceConnection {
+const joinVC = function (author: GuildMember): VoiceConnection {
     const connection = joinVoiceChannel({
         channelId: author.voice.channelId as string,
         guildId: author.guild.id as string,
@@ -85,7 +85,7 @@ module.exports = {
             }
             player.playAll((details) => {
                 if(details) {
-                        interaction.editReply("♫ Now playing ♫\n" + 
+                        interaction.editReply("**♫ Now playing ♫**\n" + 
                         details.url);
                 }
                 else {

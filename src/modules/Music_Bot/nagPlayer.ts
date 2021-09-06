@@ -11,7 +11,7 @@ import { createSongsFromLink,
         video_details } from "./songQueue";
 
 /**
- * Discord bot music player implementation
+ * **Discord bot music player implementation**
  *
  * @export
  * @class nagPlayer

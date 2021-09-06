@@ -4,7 +4,7 @@ import { PlayList } from "play-dl/dist/YouTube/classes/Playlist";
 import { dlog, nagLogger } from "../nagLogger";
 
 /**
- * See play-dl's video_details
+ * **See play-dl's video_details**
  *
  * @export
  * @interface video_details
@@ -32,7 +32,6 @@ export interface video_details {
 }
 
 /*
- * 
  * @note Used in songQueue to store songs
  * @export
  */
@@ -42,7 +41,7 @@ export interface Song {
 }
 
 /**
- * Simple songQueue implementation
+ * **Simple songQueue implementation**
  *
  * @export
  * @note Don't directly use this for music bots! Use nagPlayer class instead!

@@ -3,7 +3,8 @@ import { Client } from "discord.js";
 import { createLogger, format, Logger, loggers, transports } from "winston"
 
 /**
- * Not another generic Logger! 
+ * **Not another generic Logger!**  
+ * A very simple single singleton logger
  *
  * @export
  * @class nagLogger

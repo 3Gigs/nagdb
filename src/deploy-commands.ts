@@ -8,7 +8,6 @@ const commands: Array<unknown> = [];
 const rest = new REST({ version: '9' }).setToken(token);
 const commandFiles = fs.readdirSync(__dirname + "/commands")
 
-// TODO: Add command options
 /** 
  * Deploy commands to a local testing guild
  * @return void

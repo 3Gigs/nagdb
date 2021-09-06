@@ -15,39 +15,80 @@ export interface clientCommands extends Client {
     commands?: Collection<string, unknown>
 }
 
-/*
- * Handles listening and executing interaction stuff
+/** 
+ * **Handles listening and executing interaction stuff**  
+ *  Singleton instance 
  *
+ * @singleton
  * @export
  * @class commandHandler
  */
 export class commandHandler {
-    /** @private */
-    client: clientCommands;
-    /** @private */
-    commandFiles: Array<string> = [];
+    private client: clientCommands;
+    private commandFiles: Array<string> = [];
+    private static _instance: commandHandler;
 
     /**
-     * Creates an instance of commandHandler.
+     * @private
      * @param {Client} client
      * @memberof commandHandler
      */
-    constructor(client: Client) {
+    private constructor(client: Client) {
         this.client = client;
         this.client.commands = new Collection();
         this.refreshCommandDir();
     }
+
+    /**
+     * Construct a new commandHandler and store inside a static instance var
+     *
+     * @static
+     * @param {Client} client
+     * @return {commandHandler} Singleton instance
+     * @throws Error if already instanced
+     * @memberof commandHandler
+     */
+    static construct(client: Client) {
+        if(!this._instance) {
+            return this._instance = new this(client);
+        }
+        else {
+            throw new Error("Singleton already instanced");
+        }
+    }
+
+    /**
+     * Get singleton instance
+     *
+     * @static
+     * @return {*}  {commandHandler}
+     * @memberof commandHandler
+     */
+    static getInstance(): commandHandler {
+        if(!this._instance) {
+            return this._instance;
+        }
+        else {
+            throw new Error("You must use the static construct method to " +
+                    "create a new instance of this first!");
+        }
+    }
     
     /**
+     * Adds commands to commands Discord.js collection
      * 
      * @return void
      * @memberof commandHandler
      */
     refreshCommandDir() {
+        if(!this.client.commands) {
+            throw new Error("client.commands not found");
+        }
         this.commandFiles = fs.readdirSync(__dirname + "/commands")
         this.commandFiles.forEach(file => {
             const command = require(`./commands/${file}`);
-            this.client.commands?.set(command.data.name, command)
+            (this.client.commands as Collection<string, unknown>)
+                    .set(command.data.name, command);
         })
         nagLogger.getInstance().log("info", "All commands refreshed")
     }
