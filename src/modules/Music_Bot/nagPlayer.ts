@@ -3,8 +3,10 @@ import { AudioPlayer,
         NoSubscriberBehavior, 
         PlayerSubscription, 
         VoiceConnection } from "@discordjs/voice";
-import { dlog, nagLogger } from "../nagLogger";
-import { createSongsFromLink, Song, songQueue, video_details } from "./songQueue";
+import { dlog } from "../nagLogger";
+import { createSongsFromLink, 
+        songQueue, 
+        video_details } from "./songQueue";
 
 /**
  * Discord bot music player implementation
@@ -116,13 +118,13 @@ export class nagPlayer {
     }
 
     @dlog("debug", "Skipping music")
-    skipMusic(): Song | undefined {
-        if(this.player.stop()) {
-            return this.nextSong();
+    skipMusic(): video_details | undefined {
+        try {
+            return this.nextSong().songDetails;
         }
-        else {
-            throw new Error("Error while skipping music");
+        catch (error) {
+            this.player.stop();
+            return;
         }
     }
-
 }

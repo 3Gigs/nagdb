@@ -2,6 +2,7 @@
 import { Client, Collection } from "discord.js"
 import path from "path"
 import fs from "fs";
+import { nagLogger } from "./modules/nagLogger";
 
 /**Discord.js' Client but with commands collection added */
 export interface clientCommands extends Client {
@@ -48,7 +49,7 @@ export class commandHandler {
             const command = require(`./commands/${file}`);
             this.client.commands?.set(command.data.name, command)
         })
-        console.log("Command files refreshed!");
+        nagLogger.getInstance().log("info", "All commands refreshed")
     }
 
     /**
@@ -70,7 +71,8 @@ export class commandHandler {
             try {
                 await command.execute(interaction)
             } catch(error) {
-                console.error(error);
+                nagLogger.getInstance().log("warn", 
+                        "Cannot execute command\n" + error);
                 await interaction.reply(
                         { content: 'There was an error while executing this command!', 
                         ephemeral: true }
