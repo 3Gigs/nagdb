@@ -59,7 +59,6 @@ export class commandHandler {
      */
     attachCommandListener() {
         this.client.on("interactionCreate", async interaction => {
-            console.log("Interaction received!");
             if(!interaction.isCommand()) return;
 
             const command: any = this

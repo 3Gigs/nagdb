@@ -1,7 +1,7 @@
 import { AudioResource, createAudioResource } from "@discordjs/voice";
 import { validate, video_info, stream, validate_playlist, playlist_info } from "play-dl";
 import { PlayList } from "play-dl/dist/YouTube/classes/Playlist";
-import { nagLogger } from "../nagLogger";
+import { dlog, nagLogger } from "../nagLogger";
 
 /**
  * See play-dl's video_details
@@ -55,21 +55,8 @@ export class songQueue {
         this.queue = [];
     }
 
-    /**
-     * Adds song(s) to queue, can directly pass a Song object or a url link
-     *
-     * @param {string} input
-     * @memberof nagPlayer
-     */
-    @nagLogger.getInstance().log("debug", "Adding song to queue...")
-    async addSongs(url: string) {
-        const song = await createSongsFromLink(url);
-        if(!song) {
-            throw new Error("Invalid song!");
-        }
-    }; 
-
-    public enqueue(music: Song): number | undefined {
+    @dlog("debug", "Adding song to queue")
+    enqueue(music: Song): number | undefined {
         const result =  this.queue.push(music);
         return result ? result : undefined;
     }
@@ -78,7 +65,8 @@ export class songQueue {
      * 
      * @returns Next Djs/Voice AudioResource to play
      */
-    public dequeue(): Song | undefined {
+    @dlog("debug", "Dequeuing...")
+    dequeue(): Song | undefined {
         const result = this.queue.shift();
         return result ? result : undefined;
     }

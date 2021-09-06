@@ -38,10 +38,9 @@ module.exports = {
                   .setRequired(false)
         ),
     async execute(interaction: CommandInteraction) {
-        await interaction.reply("Attempting to play music...");
         const input = interaction.options.getString("input");
         if(!input) {
-            interaction.followUp("Invalid input!");
+            interaction.reply("Invalid input!");
             return;
         }
 
@@ -58,25 +57,25 @@ module.exports = {
 
             try {
                 await player.addSongs(input);
-                await interaction.followUp("Adding songs to queue...") 
+                await interaction.reply("Adding songs to queue...") 
             }
             catch(error) {
-                interaction.followUp("Could not add music to queue!")
+                interaction.editReply("Could not add music to queue!")
                 console.error(error);
             }
             player.playAll((details) => {
                 if(details) {
-                        interaction.followUp("♫ Now playing ♫\n" + 
+                        interaction.editReply("♫ Now playing ♫\n" + 
                         details.url);
                 }
                 else {
-                    interaction.followUp("No songs in queue, stopping....");
+                    interaction.editReply("No more songs in queue....");
                 }
             })
         } 
         else {
-            interaction.followUp("You are not sending this"
-                    + "from a valid Guild!");
+            interaction.followUp("You are not sending this from a valid" +
+                    "Guild!");
         }
     },
 };

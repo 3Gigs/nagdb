@@ -3,7 +3,7 @@ import { AudioPlayer,
         NoSubscriberBehavior, 
         PlayerSubscription, 
         VoiceConnection } from "@discordjs/voice";
-import { nagLogger } from "../nagLogger";
+import { dlog, nagLogger } from "../nagLogger";
 import { createSongsFromLink, Song, songQueue, video_details } from "./songQueue";
 
 /**
@@ -51,7 +51,7 @@ export class nagPlayer {
      * @memberof nagPlayer
      * @throws An Error if cannot unable to create Song array
      */
-    @nagLogger.getInstance().log("debug", "Adding song to queue...")
+    @dlog("debug", "Adding song to queue...")
     async addSongs(url: string) {
         let songList = await createSongsFromLink(url);
         if(songList) {
@@ -71,7 +71,7 @@ export class nagPlayer {
      * @memberof nagPlayer
      * @throws An Error if no song in queue
      */
-    @nagLogger.getInstance().log("debug", "Playing music from queue...")
+    @dlog("debug", "Playing music from queue...")
     nextSong() {
         const song = this.songQueue.dequeue();
 
@@ -115,7 +115,7 @@ export class nagPlayer {
         }
     }
 
-    @nagLogger.getInstance().log("debug", "Skipping music")
+    @dlog("debug", "Skipping music")
     skipMusic(): Song | undefined {
         if(this.player.stop()) {
             return this.nextSong();

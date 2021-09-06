@@ -8,8 +8,9 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS,
             Intents.FLAGS.GUILD_VOICE_STATES] });
 const cmdHandler = new commandHandler(client);
 
+nagLogger.getInstance().logBot(client);
+
 client.once('ready', () => {
-	console.log('Ready!');
     cmdHandler.attachCommandListener();
 });
 
