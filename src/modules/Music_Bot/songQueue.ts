@@ -79,7 +79,6 @@ export class songQueue {
  * @param {string} input
  * @return {*}  {(Song | SongList)}
  */
-// TODO: Convert this to return a Song array
 export async function createSongsFromLink (input: string): 
         Promise<Song[] | undefined> 
 {
@@ -113,6 +112,7 @@ export async function createSongsFromLink (input: string):
                 const playlistAll = await playlist.fetch()
                 if(playlistAll) {
                     const pages = playlistAll.total_pages; 
+                    // Push every song in every page to songList
                     for(let i = 1; i <= pages; i++) {
                         let videos = playlistAll.page(pages);
                         for(let a = 0; a < videos.length; a++) {

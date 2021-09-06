@@ -8,24 +8,25 @@ module.exports = {
         .setDescription("Skip currently playing music"),
     async execute(interaction: CommandInteraction) {
         const guild = interaction.guild;
-        if(!guild) {
-            await interaction.reply("Get find guild!");
-            return;
-        }
-        const player = guildPlayers.get(guild.id);
-        if(!player) {
-            await interaction.reply("Currently not connected to this " +
-            "guild's voice channel!");
-            return;
-        }
-        await interaction.reply("Skipping music...");
-        const songDetails = player.skipMusic();
-        if(!songDetails) {
-            await interaction.editReply("Reached end of song queue!");
-        }
+        if(guild) {
+            const player = guildPlayers.get(guild.id);
+            if(!player) {
+                await interaction.reply("Currently not connected to this " +
+                "guild's voice channel!");
+            }
+            else {
+                await interaction.reply("Skipping music...");
+                const songDetails = player.skipMusic();
+                if(songDetails) {
+                    await interaction.editReply("♫ Now playing ♫\n" 
+                            + songDetails.url);
+                }
+            }
+        } 
         else {
-            await interaction.editReply("♫ Now playing ♫\n" 
-                    + songDetails.url);
+            await interaction.reply("Cannot find guild!");
         }
-    },
+        // Automatically delete this message
+        setTimeout(() => {interaction.deleteReply()}, 5_000);
+    }
 };

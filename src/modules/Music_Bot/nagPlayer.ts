@@ -1,8 +1,10 @@
 import { AudioPlayer, 
         AudioPlayerStatus, 
+        entersState, 
         NoSubscriberBehavior, 
         PlayerSubscription, 
-        VoiceConnection } from "@discordjs/voice";
+        VoiceConnection, 
+        VoiceConnectionStatus} from "@discordjs/voice";
 import { dlog } from "../nagLogger";
 import { createSongsFromLink, 
         songQueue, 

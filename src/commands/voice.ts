@@ -1,10 +1,11 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
-import { getVoiceConnection, 
+import { entersState, 
+        getVoiceConnection, 
         joinVoiceChannel, 
-        VoiceConnection } from "@discordjs/voice";
+        VoiceConnection, 
+        VoiceConnectionStatus} from "@discordjs/voice";
 import { CommandInteraction, 
         GuildMember } from "discord.js";
-import { nagLogger } from "../modules/nagLogger";
 import { nagPlayer } from "../modules/Music_Bot/nagPlayer";
 import { guildPlayers } from "../modules/Music_Bot/guildPlayers";
 
@@ -41,15 +42,34 @@ module.exports = {
         const input = interaction.options.getString("input");
         if(!input) {
             interaction.reply("Invalid input!");
-            return;
         }
-
-        if(interaction.guild !== null) {
+        else if(interaction.guild !== null) {
+            const guild = interaction.guild;
             let player = guildPlayers.get(interaction.guild.id);
             if(!player) {
-                let connection = getVoiceConnection(interaction.guild.id);
+                let connection = getVoiceConnection(guild.id);
                 if(!connection) {
-                    connection =  joinVC(interaction.member as GuildMember);
+                    connection = joinVC(interaction.member as GuildMember);
+                    if(connection) {
+                        // Register event for handling random disconnects
+                        connection.on(VoiceConnectionStatus.Disconnected, 
+                            async (oldState, newState) => {
+                            try {
+                                await Promise.race([
+                                    entersState(connection as VoiceConnection, 
+                                            VoiceConnectionStatus.Signalling,
+                                            5_000),
+                                    entersState(connection as VoiceConnection, 
+                                            VoiceConnectionStatus.Connecting, 
+                                            5_000),
+                                ]);
+                            }
+                            catch (error) {
+                                (connection as VoiceConnection).destroy();
+                                guildPlayers.delete(guild.id);
+                            }
+                        })
+                    }
                 }
                 player = new nagPlayer(connection);
                 guildPlayers.set(interaction.guild.id, player);
@@ -77,5 +97,7 @@ module.exports = {
             interaction.followUp("You are not sending this from a valid" +
                     "Guild!");
         }
+        // Auto delete this message
+        setTimeout(() => {interaction.deleteReply()}, 5_000)
     },
 };
