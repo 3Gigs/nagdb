@@ -63,7 +63,11 @@ export class nagLogger {
             this.logger.log("error", m);
         })
         process.on("uncaughtException", m => {
-            this.logger.log("error", m)
+            let _stack = undefined;
+            if(m.stack) {
+                _stack = m.stack;
+            }
+            this.logger.log("error", m + '\n' + _stack);
         })
     }
 

@@ -35,7 +35,6 @@ export class commandHandler {
      */
     private constructor(client: Client) {
         this.client = client;
-        this.client.commands = new Collection();
         this.refreshCommandDir();
     }
 
@@ -65,13 +64,18 @@ export class commandHandler {
      * @memberof commandHandler
      */
     static getInstance(): commandHandler {
-        if(!this._instance) {
+        if(this._instance) {
             return this._instance;
         }
         else {
             throw new Error("You must use the static construct method to " +
                     "create a new instance of this first!");
         }
+    }
+
+    private requireUncached(module: any) {
+        delete require.cache[require.resolve(module)];
+        return require(module);
     }
     
     /**
@@ -81,16 +85,15 @@ export class commandHandler {
      * @memberof commandHandler
      */
     refreshCommandDir() {
-        if(!this.client.commands) {
-            throw new Error("client.commands not found");
-        }
-        this.commandFiles = fs.readdirSync(__dirname + "/commands")
+        this.client.commands = new Collection();
+        this.commandFiles = fs.readdirSync(__dirname + "/commands");
         this.commandFiles.forEach(file => {
-            const command = require(`./commands/${file}`);
+            let command;
+            command = this.requireUncached(`./commands/${file}`);
             (this.client.commands as Collection<string, unknown>)
                     .set(command.data.name, command);
         })
-        nagLogger.getInstance().log("info", "All commands refreshed")
+        nagLogger.getInstance().log("info", "All commands refreshed");
     }
 
     /**

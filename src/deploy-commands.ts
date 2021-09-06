@@ -12,28 +12,30 @@ const commandFiles = fs.readdirSync(__dirname + "/commands")
  * Deploy commands to a local testing guild
  * @return void
 */
-export const deployLocal = () => {
+export const deployLocal = () => new Promise<void>((resolve, reject) => {
     //nagLogger.getInstance().log("info", 
     //        "Deploying local commands to test server");
-    console.log("Deploying local commands to test server")
+    console.log("Deploying local commands to test server");
     commandFiles.forEach(async file => {
-        const command = require(`./commands/${file}`);
-        commands.push(command.data.toJSON());
         try {
-            await rest.put(
+            const command = require(`./commands/${file}`);
+            commands.push(command.data.toJSON());
+            rest.put(
                 Routes.applicationGuildCommands(clientId, guildId),
                 { body: commands }
             )
         }
         catch (error) {
-            console.error(error);
+            reject(new Error("Cannot deploy file " + file));
         }
     })
-}
+    resolve(undefined);
+});
 
-deployLocal();
-
-//TODO: Make global commands
 export const deployGlobal = () => {
 
 }
+
+(async () => {
+    await deployLocal();
+})();
