@@ -1,6 +1,5 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
-import { CommandInteraction,
-    MessageEmbed } from "discord.js";
+import { CommandInteraction } from "discord.js";
 import { guildPlayers } from "../modules/Music_Bot/guildPlayers";
 import { nowPlayingEmbedCreator } from "./musicPlay";
 

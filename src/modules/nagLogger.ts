@@ -1,6 +1,6 @@
 /** @module nagLogger */
 import { Client } from "discord.js";
-import { createLogger, format, Logger, loggers, transports } from "winston";
+import { createLogger, format, Logger, transports } from "winston";
 
 /**
  * **Not another generic Logger!**
@@ -53,7 +53,7 @@ export class nagLogger {
      * @param {Client} client
      * @memberof nagLogger
      */
-    logBot(client: Client) {
+    logBot(client: Client): void {
         client.on("ready", () => {
             this.logger.log("info", "Bot online!");
         });
@@ -75,7 +75,7 @@ export class nagLogger {
         });
     }
 
-    log(warnLvl: string, m: string) {
+    log(warnLvl: string, m: string): void {
         this.logger.log(warnLvl, m);
     }
 }
@@ -89,7 +89,7 @@ export class nagLogger {
  */
 export const dlog = function(logLevel: string, m: string): MethodDecorator {
     return function(
-        target: Object,
+        target: unknown,
         key: string | symbol,
         descriptor: PropertyDescriptor): void {
         const targetMethod = descriptor.value;
