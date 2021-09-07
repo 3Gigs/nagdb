@@ -23,7 +23,7 @@ import { video_details } from "../modules/Music_Bot/songQueue";
  *
  * @param {video_details} Details
  */
-function nowPlayingEmbedCreator(details: video_details): MessageEmbed {
+export const nowPlayingEmbedCreator = (details: video_details): MessageEmbed => {
         const embed =  new MessageEmbed()
         embed.setColor("AQUA")
             .setTitle("🎧 Now Playing!")
@@ -55,6 +55,7 @@ const joinVC = function (author: GuildMember): VoiceConnection {
 }
 
 module.exports = {
+    nowPlayingEmbedCreator,
     data: new SlashCommandBuilder()
         .setName("play")
         .setDescription("Plays youtube audio given link or search query")
@@ -130,6 +131,7 @@ module.exports = {
                 return;
             }
             player.playAll((details) => {
+                // Continue to display song information until there's no more
                 if (details) {
                     interaction.editReply(
                         { embeds: [nowPlayingEmbedCreator(details)] });

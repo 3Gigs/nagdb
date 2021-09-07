@@ -2,21 +2,7 @@ import { SlashCommandBuilder } from "@discordjs/builders";
 import { CommandInteraction, 
         MessageEmbed } from "discord.js";
 import { guildPlayers } from "../modules/Music_Bot/guildPlayers";
-import { video_details } from "../modules/Music_Bot/songQueue";
-
-function nowPlayingEmbedCreator(details: video_details): MessageEmbed {
-    const embed =  new MessageEmbed()
-    embed.setColor("AQUA")
-        .setTitle("🎧 Now Playing!")
-        .setThumbnail(details.thumbnail.url)
-        .setURL(details.url)
-        .addFields(
-            { name: "Title", value: details.title },
-            { name: "Channel", value: details.channel.name },
-            { name: "Length", value: details.durationRaw }
-        )
-    return embed;
-}
+import { nowPlayingEmbedCreator } from "./musicPlay"
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -42,7 +28,5 @@ module.exports = {
         else {
             await interaction.reply("Cannot find guild!");
         }
-        // Automatically delete this message
-        setTimeout(() => {interaction.deleteReply()}, 5_000);
     }
 };
