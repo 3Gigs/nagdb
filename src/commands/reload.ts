@@ -9,21 +9,21 @@ module.exports = {
         .setDescription("Hot reload all commands"),
     execute(interaction: CommandInteraction) {
         interaction.reply("Reloading commands")
-                .then(() => {
-                    commandHandler.getInstance().refreshCommandDir();
-                })
-                .then(() => {
-                    interaction.editReply("Commands reloaded!");
-                })
-                .then(() => {
-                    // Auto-delete interaction
-                    setTimeout(() => {
-                        interaction.deleteReply();
-                    }, 5_000);
-                })
-                .catch((error) => {
-                    throw new Error(error);
-                });
+            .then(() => {
+                commandHandler.getInstance().refreshCommandDir();
+            })
+            .then(() => {
+                interaction.editReply("Commands reloaded!");
+            })
+            .then(() => {
+                // Auto-delete interaction
+                setTimeout(() => {
+                    interaction.deleteReply();
+                }, 5_000);
+            })
+            .catch((error) => {
+                throw new Error(error);
+            });
 
     },
 };

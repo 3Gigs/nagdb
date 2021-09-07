@@ -48,7 +48,7 @@ export class commandHandler {
      * @memberof commandHandler
      */
     static construct(client: Client) {
-        if(!this._instance) {
+        if (!this._instance) {
             return this._instance = new this(client);
         }
         else {
@@ -64,12 +64,12 @@ export class commandHandler {
      * @memberof commandHandler
      */
     static getInstance(): commandHandler {
-        if(this._instance) {
+        if (this._instance) {
             return this._instance;
         }
         else {
             throw new Error("You must use the static construct method to " +
-                    "create a new instance of this first!");
+                "create a new instance of this first!");
         }
     }
 
@@ -77,7 +77,7 @@ export class commandHandler {
         delete require.cache[require.resolve(module)];
         return require(module);
     }
-    
+
     /**
      * Adds commands to commands Discord.js collection
      * 
@@ -91,7 +91,7 @@ export class commandHandler {
             let command;
             command = this.requireUncached(`./commands/${file}`);
             (this.client.commands as Collection<string, unknown>)
-                    .set(command.data.name, command);
+                .set(command.data.name, command);
         })
         nagLogger.getInstance().log("info", "All commands refreshed");
     }
@@ -104,23 +104,19 @@ export class commandHandler {
      */
     attachCommandListener() {
         this.client.on("interactionCreate", async interaction => {
-            if(!interaction.isCommand()) return;
+            if (!interaction.isCommand()) return;
 
             const command: any = this
-                    .client
-                    .commands?.get(interaction.commandName);
+                .client
+                .commands?.get(interaction.commandName);
 
-            if(!command) return;
+            if (!command) return;
 
             try {
                 await command.execute(interaction)
-            } catch(error) {
-                nagLogger.getInstance().log("warn", 
-                        "Cannot execute command\n" + error);
-                await interaction.reply(
-                        { content: 'There was an error while executing this command!', 
-                        ephemeral: true }
-                );
+            } catch (error) {
+                nagLogger.getInstance().log("warn",
+                    "Cannot execute command\n" + error);
             }
         });
     }

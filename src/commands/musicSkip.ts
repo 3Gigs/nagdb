@@ -1,6 +1,22 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
-import { CommandInteraction, GuildMember } from "discord.js";
+import { CommandInteraction, 
+        MessageEmbed } from "discord.js";
 import { guildPlayers } from "../modules/Music_Bot/guildPlayers";
+import { video_details } from "../modules/Music_Bot/songQueue";
+
+function nowPlayingEmbedCreator(details: video_details): MessageEmbed {
+    const embed =  new MessageEmbed()
+    embed.setColor("AQUA")
+        .setTitle("🎧 Now Playing!")
+        .setThumbnail(details.thumbnail.url)
+        .setURL(details.url)
+        .addFields(
+            { name: "Title", value: details.title },
+            { name: "Channel", value: details.channel.name },
+            { name: "Length", value: details.durationRaw }
+        )
+    return embed;
+}
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -18,8 +34,8 @@ module.exports = {
                 await interaction.reply("Skipping music...");
                 const songDetails = player.skipMusic();
                 if(songDetails) {
-                    await interaction.editReply("♫ Now playing ♫\n" 
-                            + songDetails.url);
+                    await interaction.editReply(
+                        { embeds: [nowPlayingEmbedCreator(songDetails)] });
                 }
             }
         } 

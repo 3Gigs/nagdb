@@ -11,7 +11,7 @@ import { createLogger, format, Logger, loggers, transports } from "winston"
  */
 export class nagLogger {
     private static instance: nagLogger;
-    logger : Logger;
+    logger: Logger;
 
     /** @private */
     private constructor() {
@@ -19,13 +19,17 @@ export class nagLogger {
             level: "info",
             transports: [
                 new transports.Console(),
-                new transports.File({ filename: 'nagdb.txt', 
-                        options: { flags: 'w' } }),
-                new transports.File({ filename: 'nagdb-debug.txt', 
-                        options: { flags: 'w' },
-                        level: "debug" }),
+                new transports.File({
+                    filename: 'nagdb.txt',
+                    options: { flags: 'w' }
+                }),
+                new transports.File({
+                    filename: 'nagdb-debug.txt',
+                    options: { flags: 'w' },
+                    level: "debug"
+                }),
             ],
-            format: format.printf(log => 
+            format: format.printf(log =>
                 `[${log.level.toUpperCase()}] - ${log.message}`)
         })
     }
@@ -37,7 +41,7 @@ export class nagLogger {
      * @memberof nagLogger
      */
     public static getInstance(): nagLogger {
-        if(!nagLogger.instance) {
+        if (!nagLogger.instance) {
             nagLogger.instance = new this();
         }
         return nagLogger.instance;
@@ -64,7 +68,7 @@ export class nagLogger {
         })
         process.on("uncaughtException", m => {
             let _stack = undefined;
-            if(m.stack) {
+            if (m.stack) {
                 _stack = m.stack;
             }
             this.logger.log("error", m + '\n' + _stack);
@@ -83,16 +87,16 @@ export class nagLogger {
  * @return {*}  {MethodDecorator}
  * @memberof nagLogger
  */
-export const dlog = function(logLevel: string, m : string): MethodDecorator {
-    return function(
-        target: Object, 
-        key: string | symbol, 
+export const dlog = function (logLevel: string, m: string): MethodDecorator {
+    return function (
+        target: Object,
+        key: string | symbol,
         descriptor: PropertyDescriptor): void {
-            const targetMethod = descriptor.value;
+        const targetMethod = descriptor.value;
 
-            descriptor.value = function(...args: any[]) {
-                nagLogger.getInstance().log(logLevel, m);
-                return targetMethod.apply(this, args);
-            }
+        descriptor.value = function (...args: any[]) {
+            nagLogger.getInstance().log(logLevel, m);
+            return targetMethod.apply(this, args);
         }
+    }
 }
