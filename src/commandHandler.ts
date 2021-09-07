@@ -1,23 +1,22 @@
-/**@module commandHandler */
-import { Client, Collection } from "discord.js"
-import path from "path"
+/** @module commandHandler */
+import { Client, Collection } from "discord.js";
 import fs from "fs";
 import { nagLogger } from "./modules/nagLogger";
 
-/**Discord.js' Client but with commands collection added */
+/** Discord.js' Client but with commands collection added */
 export interface clientCommands extends Client {
     /**
      * A collection of commands
-     * 
+     *
      * @type {Collection<string, unknown>}
      * @memberof clientCommands
      */
     commands?: Collection<string, unknown>
 }
 
-/** 
- * **Handles listening and executing interaction stuff**  
- *  Singleton instance 
+/**
+ * **Handles listening and executing interaction stuff**
+ *  Singleton instance
  *
  * @singleton
  * @export
@@ -47,7 +46,7 @@ export class commandHandler {
      * @throws Error if already instanced
      * @memberof commandHandler
      */
-    static construct(client: Client) {
+    static construct(client: Client): commandHandler {
         if (!this._instance) {
             return this._instance = new this(client);
         }
@@ -80,29 +79,28 @@ export class commandHandler {
 
     /**
      * Adds commands to commands Discord.js collection
-     * 
+     *
      * @return void
      * @memberof commandHandler
      */
-    refreshCommandDir() {
+    refreshCommandDir():void {
         this.client.commands = new Collection();
         this.commandFiles = fs.readdirSync(__dirname + "/commands");
         this.commandFiles.forEach(file => {
-            let command;
-            command = this.requireUncached(`./commands/${file}`);
+            const command = this.requireUncached(`./commands/${file}`);
             (this.client.commands as Collection<string, unknown>)
                 .set(command.data.name, command);
-        })
+        });
         nagLogger.getInstance().log("info", "All commands refreshed");
     }
 
     /**
      * Attaches the interaction handler to the listener
-     * 
+     *
      * @return void
      * @memberof commandHandler
      */
-    attachCommandListener() {
+    attachCommandListener(): void {
         this.client.on("interactionCreate", async interaction => {
             if (!interaction.isCommand()) return;
 
@@ -113,8 +111,9 @@ export class commandHandler {
             if (!command) return;
 
             try {
-                await command.execute(interaction)
-            } catch (error) {
+                await command.execute(interaction);
+            }
+            catch (error) {
                 nagLogger.getInstance().log("warn",
                     "Cannot execute command\n" + error);
             }

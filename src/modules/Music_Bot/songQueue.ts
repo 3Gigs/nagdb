@@ -1,7 +1,7 @@
 import { AudioResource, createAudioResource } from "@discordjs/voice";
 import { validate, video_info, stream, validate_playlist, playlist_info } from "play-dl";
 import { PlayList } from "play-dl/dist/YouTube/classes/Playlist";
-import { dlog, nagLogger } from "../nagLogger";
+import { dlog } from "../nagLogger";
 
 /**
  * **See play-dl's video_details**
@@ -61,7 +61,7 @@ export class songQueue {
     }
     /**
      * Dequeue a AudioResource from queue
-     * 
+     *
      * @returns Next Djs/Voice AudioResource to play
      */
     @dlog("debug", "Dequeuing...")
@@ -81,40 +81,40 @@ export class songQueue {
 export async function createSongsFromLink(input: string):
     Promise<Song[] | undefined> {
     if (validate(input)) {
-        let songList: Array<Song> = [];
-        const songDetails: video_details = (await video_info(input)).
-            video_details;
+        const songList: Array<Song> = [];
+        const songDetails: video_details = (await video_info(input))
+            .video_details;
         try {
             const musicStream = await stream(input);
             const resource = createAudioResource(musicStream.stream,
                 { inputType: musicStream.type });
             const song: Song = {
                 resource,
-                songDetails
-            }
+                songDetails,
+            };
             songList.push(song);
             return songList;
         }
         catch (error) {
-            throw new Error("Error while trying to stream YouTube Link")
+            throw new Error("Error while trying to stream YouTube Link");
         }
     }
 
     if (validate_playlist(input)) {
-        let songList: Array<Song> = [];
+        const songList: Array<Song> = [];
         let playlist: PlayList | undefined;
 
         try {
             playlist = await playlist_info(input);
             if (playlist) {
-                const playlistAll = await playlist.fetch()
+                const playlistAll = await playlist.fetch();
                 if (playlistAll) {
                     const pages = playlistAll.total_pages;
                     // Push every song in every page to songList
                     for (let i = 1; i <= pages; i++) {
-                        let videos = playlistAll.page(pages);
+                        const videos = playlistAll.page(pages);
                         for (let a = 0; a < videos.length; a++) {
-                            let video = videos[a];
+                            const video = videos[a];
                             if (video.url) {
                                 const musicStream = await stream(video.url);
                                 const songDetails: video_details =
@@ -125,8 +125,8 @@ export async function createSongsFromLink(input: string):
                                     { inputType: musicStream.type });
                                 const song: Song = {
                                     resource,
-                                    songDetails
-                                }
+                                    songDetails,
+                                };
                                 songList.push(song);
                             }
                         }

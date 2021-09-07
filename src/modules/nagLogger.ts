@@ -1,9 +1,9 @@
-/**@module nagLogger */
+/** @module nagLogger */
 import { Client } from "discord.js";
-import { createLogger, format, Logger, loggers, transports } from "winston"
+import { createLogger, format, Logger, loggers, transports } from "winston";
 
 /**
- * **Not another generic Logger!**  
+ * **Not another generic Logger!**
  * A very simple single singleton logger
  *
  * @export
@@ -20,18 +20,18 @@ export class nagLogger {
             transports: [
                 new transports.Console(),
                 new transports.File({
-                    filename: 'nagdb.txt',
-                    options: { flags: 'w' }
+                    filename: "nagdb.txt",
+                    options: { flags: "w" },
                 }),
                 new transports.File({
-                    filename: 'nagdb-debug.txt',
-                    options: { flags: 'w' },
-                    level: "debug"
+                    filename: "nagdb-debug.txt",
+                    options: { flags: "w" },
+                    level: "debug",
                 }),
             ],
             format: format.printf(log =>
-                `[${log.level.toUpperCase()}] - ${log.message}`)
-        })
+                `[${log.level.toUpperCase()}] - ${log.message}`),
+        });
     }
 
     /**
@@ -56,23 +56,23 @@ export class nagLogger {
     logBot(client: Client) {
         client.on("ready", () => {
             this.logger.log("info", "Bot online!");
-        })
+        });
         client.on("debug", m => {
             this.logger.log("debug", m);
-        })
+        });
         client.on("warn", m => {
             this.logger.log("warn", m);
-        })
+        });
         client.on("error", m => {
             this.logger.log("error", m);
-        })
+        });
         process.on("uncaughtException", m => {
             let _stack = undefined;
             if (m.stack) {
                 _stack = m.stack;
             }
-            this.logger.log("error", m + '\n' + _stack);
-        })
+            this.logger.log("error", m + "\n" + _stack);
+        });
     }
 
     log(warnLvl: string, m: string) {
@@ -87,16 +87,16 @@ export class nagLogger {
  * @return {*}  {MethodDecorator}
  * @memberof nagLogger
  */
-export const dlog = function (logLevel: string, m: string): MethodDecorator {
-    return function (
+export const dlog = function(logLevel: string, m: string): MethodDecorator {
+    return function(
         target: Object,
         key: string | symbol,
         descriptor: PropertyDescriptor): void {
         const targetMethod = descriptor.value;
 
-        descriptor.value = function (...args: any[]) {
+        descriptor.value = function(...args: any[]) {
             nagLogger.getInstance().log(logLevel, m);
             return targetMethod.apply(this, args);
-        }
-    }
-}
+        };
+    };
+};

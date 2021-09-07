@@ -1,17 +1,17 @@
 import {
-    SlashCommandBuilder
+    SlashCommandBuilder,
 } from "@discordjs/builders";
 import {
     entersState,
     getVoiceConnection,
     joinVoiceChannel,
     VoiceConnection,
-    VoiceConnectionStatus
+    VoiceConnectionStatus,
 } from "@discordjs/voice";
 import {
     CommandInteraction,
     GuildMember,
-    MessageEmbed
+    MessageEmbed,
 } from "discord.js";
 import { nagPlayer } from "../modules/Music_Bot/nagPlayer";
 import { guildPlayers } from "../modules/Music_Bot/guildPlayers";
@@ -24,18 +24,18 @@ import { video_details } from "../modules/Music_Bot/songQueue";
  * @param {video_details} Details
  */
 export const nowPlayingEmbedCreator = (details: video_details): MessageEmbed => {
-        const embed =  new MessageEmbed()
-        embed.setColor("AQUA")
-            .setTitle("🎧 Now Playing!")
-            .setThumbnail(details.thumbnail.url)
-            .setURL(details.url)
-            .addFields(
-                { name: "Title", value: details.title },
-                { name: "Channel", value: details.channel.name },
-                { name: "Length", value: details.durationRaw }
-            )
-        return embed;
-    }
+    const embed = new MessageEmbed();
+    embed.setColor("AQUA")
+        .setTitle("🎧 Now Playing!")
+        .setThumbnail(details.thumbnail.url)
+        .setURL(details.url)
+        .addFields(
+            { name: "Title", value: details.title },
+            { name: "Channel", value: details.channel.name },
+            { name: "Length", value: details.durationRaw }
+        );
+    return embed;
+};
 
 /**
  * Joins VC
@@ -43,16 +43,15 @@ export const nowPlayingEmbedCreator = (details: video_details): MessageEmbed => 
  * @param {GuildMember} author
  * @return {*}  {VoiceConnection}
  */
-const joinVC = function (author: GuildMember): VoiceConnection {
-    if(!author.voice.channelId)
-        throw new Error("Cannot find voice channelId!");
+const joinVC = function(author: GuildMember): VoiceConnection {
+    if (!author.voice.channelId) {throw new Error("Cannot find voice channelId!");}
     const connection = joinVoiceChannel({
         channelId: author.voice.channelId as string,
         guildId: author.guild.id as string,
-        adapterCreator: author.guild.voiceAdapterCreator
-    })
+        adapterCreator: author.guild.voiceAdapterCreator,
+    });
     return connection;
-}
+};
 
 module.exports = {
     nowPlayingEmbedCreator,
@@ -89,19 +88,19 @@ module.exports = {
                     if (connection) {
                         // Register event for handling random disconnects
                         connection.on(VoiceConnectionStatus.Disconnected,
-                            async (oldState, newState) => {
+                            async () => {
                                 try {
                                     await Promise.race([
                                         entersState(connection as
                                             VoiceConnection,
-                                            VoiceConnectionStatus
-                                                .Signalling,
-                                            5_000),
+                                        VoiceConnectionStatus
+                                            .Signalling,
+                                        5_000),
                                         entersState(connection as
                                             VoiceConnection,
-                                            VoiceConnectionStatus
-                                                .Connecting,
-                                            5_000),
+                                        VoiceConnectionStatus
+                                            .Connecting,
+                                        5_000),
                                     ]);
                                 }
                                 catch (error) {
@@ -112,7 +111,7 @@ module.exports = {
                                             "instance in " + guild.name);
                                     guildPlayers.delete(guild.id);
                                 }
-                            })
+                            });
                     }
                 }
                 player = new nagPlayer(connection);
@@ -121,13 +120,13 @@ module.exports = {
 
             try {
                 await player.addSongsFromLink(input);
-                await interaction.reply("Adding songs to queue...")
+                await interaction.reply("Adding songs to queue...");
             }
             catch (error) {
                 interaction.reply("Could not add music to queue" +
                     " (Invalid Input?)");
                 // Auto delete this message
-                setTimeout(() => { interaction.deleteReply() }, 5_000)
+                setTimeout(() => { interaction.deleteReply(); }, 5_000);
                 return;
             }
             player.playAll((details) => {
@@ -139,9 +138,9 @@ module.exports = {
                 else {
                     interaction.editReply("No more songs in queue....");
                     // Auto delete this message
-                    setTimeout(() => { interaction.deleteReply() }, 5_000)
+                    setTimeout(() => { interaction.deleteReply(); }, 5_000);
                 }
-            })
+            });
         }
         else {
             interaction.followUp("You are not sending this from a valid" +

@@ -1,8 +1,8 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
-import { CommandInteraction, 
-        MessageEmbed } from "discord.js";
+import { CommandInteraction,
+    MessageEmbed } from "discord.js";
 import { guildPlayers } from "../modules/Music_Bot/guildPlayers";
-import { nowPlayingEmbedCreator } from "./musicPlay"
+import { nowPlayingEmbedCreator } from "./musicPlay";
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -10,23 +10,23 @@ module.exports = {
         .setDescription("Skip currently playing music"),
     async execute(interaction: CommandInteraction) {
         const guild = interaction.guild;
-        if(guild) {
+        if (guild) {
             const player = guildPlayers.get(guild.id);
-            if(!player) {
+            if (!player) {
                 await interaction.reply("Currently not connected to this " +
                 "guild's voice channel!");
             }
             else {
                 await interaction.reply("Skipping music...");
                 const songDetails = player.skipMusic();
-                if(songDetails) {
+                if (songDetails) {
                     await interaction.editReply(
                         { embeds: [nowPlayingEmbedCreator(songDetails)] });
                 }
             }
-        } 
+        }
         else {
             await interaction.reply("Cannot find guild!");
         }
-    }
+    },
 };
