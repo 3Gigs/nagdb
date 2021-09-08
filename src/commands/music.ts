@@ -17,6 +17,7 @@ import { nagPlayer } from "../modules/Music_Bot/nagPlayer";
 import { guildPlayers } from "../modules/Music_Bot/guildPlayers";
 import { nagLogger } from "../modules/nagLogger";
 import { video_details } from "../modules/Music_Bot/songQueue";
+import { ConnectionVisibility } from "discord-api-types";
 
 /**
  * Re-usable function for making a now playing display
@@ -65,14 +66,14 @@ module.exports = {
             subcommand
                 .setName("play")
                 .setDescription("Add a song to music bot to play")
-                .addUserOption(option =>
+                .addStringOption(option =>
                     option
                         .setName("input")
-                        .setDescription("A YouTube link or search query"))
-                .addUserOption(option =>
-                    option
-                        .setName("skip")
-                        .setDescription("Skip currently playing song"))),
+                        .setDescription("A YouTube link or search query")))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName("skip")
+                .setDescription("Skips current song")),
     /*
     .addStringOption(option =>
     option
@@ -86,8 +87,10 @@ module.exports = {
     .setRequired(false)),
     */
     async execute(interaction: CommandInteraction) {
-        if (interaction.commandName === "play") {
+        // Add song and playing implementation
+        if (interaction.options.getSubcommand() === "play") {
             const input = interaction.options.getString("input");
+
             if (!input) {
                 interaction.reply("Invalid input!");
             }
@@ -149,7 +152,6 @@ module.exports = {
                     interaction.reply("Could not add music to queue" +
                         " (Invalid Input?)");
                     // Auto delete this message
-                    setTimeout(() => { interaction.deleteReply(); }, 5_000);
                     return;
                 }
                 player.playAll((details) => {
@@ -162,13 +164,33 @@ module.exports = {
                     else {
                         interaction.editReply("No more songs in queue....");
                         // Auto delete this message
-                        setTimeout(() => { interaction.deleteReply(); }, 5_000);
                     }
                 });
             }
             else {
                 interaction.followUp("You are not sending this from a valid" +
                     "Guild!");
+            }
+        }
+        else if (interaction.options.getSubcommand() === "skip") {
+            const guild = interaction.guild;
+            if (guild) {
+                const player = guildPlayers.get(guild.id);
+                if (!player) {
+                    await interaction.reply("Currently not connected to this " +
+                    "guild's voice channel!");
+                }
+                else {
+                    await interaction.reply("Skipping music...");
+                    const songDetails = player.skipMusic();
+                    if (songDetails) {
+                        await interaction.editReply(
+                            { embeds: [nowPlayingEmbedCreator(songDetails)] });
+                    }
+                }
+            }
+            else {
+                await interaction.reply("Cannot find guild!");
             }
         }
     },
