@@ -1,5 +1,9 @@
 import { AudioResource, createAudioResource } from "@discordjs/voice";
-import { validate, video_info, stream, validate_playlist, playlist_info } from "play-dl";
+import { validate,
+    video_info,
+    stream,
+    validate_playlist,
+    playlist_info } from "play-dl";
 import { PlayList } from "play-dl/dist/YouTube/classes/Playlist";
 import { dlog } from "../nagLogger";
 
@@ -80,6 +84,51 @@ export class songQueue {
  */
 export async function createSongsFromLink(input: string):
     Promise<Song[] | undefined> {
+    // If single youtube-video detected
+    console.log(validate_playlist(input));
+    if (validate_playlist(input)) {
+        const songList: Array<Song> = [];
+        let playlist: PlayList | undefined;
+
+        try {
+            playlist = await playlist_info(input);
+            if (playlist) {
+                const playlistAll = await playlist.fetch();
+                if (playlistAll) {
+                    const videosAll = await playlistAll.fetch();
+                    const videosPaged = videosAll.page(1);
+                    // Push every song in every page to songList
+                    for (const video of videosPaged) {
+                        if (!video) {
+                            throw new Error("Video cannot be found");
+                        }
+                        await (async () => {
+                            const songDetails =
+                                await video_info(video.url as string);
+                            const songStream =
+                                await stream(video.url as string);
+                            const resource = createAudioResource(
+                                songStream.stream,
+                                { inputType: songStream.type }
+                            );
+                            const song: Song = {
+                                resource,
+                                songDetails: songDetails.video_details,
+                            };
+                            console.log(song.songDetails.url);
+                            songList.push(song);
+                        })();
+                    }
+                }
+                console.log(songList[0]);
+                return songList;
+            }
+        }
+        catch (error) {
+            console.log(error);
+            throw new Error("Error while parsing music link!");
+        }
+    }
     if (validate(input)) {
         const songList: Array<Song> = [];
         const songDetails: video_details = (await video_info(input))
@@ -97,45 +146,6 @@ export async function createSongsFromLink(input: string):
         }
         catch (error) {
             throw new Error("Error while trying to stream YouTube Link");
-        }
-    }
-
-    if (validate_playlist(input)) {
-        const songList: Array<Song> = [];
-        let playlist: PlayList | undefined;
-
-        try {
-            playlist = await playlist_info(input);
-            if (playlist) {
-                const playlistAll = await playlist.fetch();
-                if (playlistAll) {
-                    const pages = playlistAll.total_pages;
-                    // Push every song in every page to songList
-                    for (let i = 1; i <= pages; i++) {
-                        const videos = playlistAll.page(pages);
-                        for (let a = 0; a < videos.length; a++) {
-                            const video = videos[a];
-                            if (video.url) {
-                                const musicStream = await stream(video.url);
-                                const songDetails: video_details =
-                                    (await video_info(video.url))
-                                        .video_details;
-                                const resource = createAudioResource(
-                                    musicStream.stream,
-                                    { inputType: musicStream.type });
-                                const song: Song = {
-                                    resource,
-                                    songDetails,
-                                };
-                                songList.push(song);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        catch (error) {
-            throw new Error("Error while processing a YouTube playlist");
         }
     }
 }

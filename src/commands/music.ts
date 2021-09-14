@@ -17,7 +17,6 @@ import { nagPlayer } from "../modules/Music_Bot/nagPlayer";
 import { guildPlayers } from "../modules/Music_Bot/guildPlayers";
 import { nagLogger } from "../modules/nagLogger";
 import { video_details } from "../modules/Music_Bot/songQueue";
-import { ConnectionVisibility } from "discord-api-types";
 
 /**
  * Re-usable function for making a now playing display
@@ -100,6 +99,8 @@ module.exports = {
                 if (!player) {
                     let connection = getVoiceConnection(guild.id);
                     if (!connection) {
+                        // Attempt to join VC if not guild voice
+                        // connection found
                         try {
                             connection =
                                 joinVC(interaction.member as GuildMember);
@@ -151,12 +152,12 @@ module.exports = {
                 catch (error) {
                     interaction.reply("Could not add music to queue" +
                         " (Invalid Input?)");
-                    // Auto delete this message
+                    console.log(error);
                     return;
                 }
+                // Continue to display song information until
+                // there's no more
                 player.playAll((details) => {
-                    // Continue to display song information until
-                    // there's no more
                     if (details) {
                         interaction.editReply(
                             { embeds: [nowPlayingEmbedCreator(details)] });
