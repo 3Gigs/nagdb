@@ -1,10 +1,7 @@
-import { AudioResource, createAudioResource } from "@discordjs/voice";
-import { validate,
-    video_info,
-    stream,
-    validate_playlist,
+import { validate_playlist,
     playlist_info } from "play-dl";
 import { PlayList } from "play-dl/dist/YouTube/classes/Playlist";
+import { Video } from "play-dl/dist/YouTube/classes/Video";
 import { dlog } from "../nagLogger";
 
 /**
@@ -35,15 +32,6 @@ export interface video_details {
     private: any;
 }
 
-/*
- * @note Used in songQueue to store songs
- * @export
- */
-export interface Song {
-    resource: AudioResource,
-    songDetails: video_details
-}
-
 /**
  * **Simple songQueue implementation**
  *
@@ -52,14 +40,14 @@ export interface Song {
  * @class songQueue
  */
 export class songQueue {
-    private queue: Array<Song>;
+    private queue: Array<Video>;
 
     public constructor() {
         this.queue = [];
     }
 
     @dlog("debug", "Adding song to queue")
-    enqueue(music: Song): number | undefined {
+    enqueue(music: Video): number | undefined {
         const result = this.queue.push(music);
         return result ? result : undefined;
     }
@@ -69,7 +57,7 @@ export class songQueue {
      * @returns Next Djs/Voice AudioResource to play
      */
     @dlog("debug", "Dequeuing...")
-    dequeue(): Song | undefined {
+    dequeue(): Video | undefined {
         const result = this.queue.shift();
         return result ? result : undefined;
     }
@@ -82,12 +70,12 @@ export class songQueue {
  * @param {string} input
  * @return {*}  {(Song | SongList)}
  */
-export async function createSongsFromLink(input: string):
-    Promise<Song[] | undefined> {
+export async function parsePlaylist(input: string):
+    Promise<Video[] | undefined> {
     // If single youtube-video detected
     console.log(validate_playlist(input));
     if (validate_playlist(input)) {
-        const songList: Array<Song> = [];
+        const vidList: Array<Video> = [];
         let playlist: PlayList | undefined;
 
         try {
@@ -103,49 +91,20 @@ export async function createSongsFromLink(input: string):
                             throw new Error("Video cannot be found");
                         }
                         await (async () => {
-                            const songDetails =
-                                await video_info(video.url as string);
-                            const songStream =
-                                await stream(video.url as string);
-                            const resource = createAudioResource(
-                                songStream.stream,
-                                { inputType: songStream.type }
-                            );
-                            const song: Song = {
-                                resource,
-                                songDetails: songDetails.video_details,
-                            };
-                            console.log(song.songDetails.url);
-                            songList.push(song);
+                            console.log(video.url);
+                            vidList.push(video);
                         })();
                     }
                 }
-                console.log(songList[0]);
-                return songList;
+                return vidList;
             }
         }
         catch (error) {
             console.log(error);
-            throw new Error("Error while parsing music link!");
+            throw new Error("Error while parsing playlist!");
         }
     }
-    if (validate(input)) {
-        const songList: Array<Song> = [];
-        const songDetails: video_details = (await video_info(input))
-            .video_details;
-        try {
-            const musicStream = await stream(input);
-            const resource = createAudioResource(musicStream.stream,
-                { inputType: musicStream.type });
-            const song: Song = {
-                resource,
-                songDetails,
-            };
-            songList.push(song);
-            return songList;
-        }
-        catch (error) {
-            throw new Error("Error while trying to stream YouTube Link");
-        }
+    else {
+        throw new Error("Not a valid playlist!");
     }
 }

@@ -1,16 +1,17 @@
 import {
     AudioPlayer,
     AudioPlayerStatus,
+    createAudioResource,
     NoSubscriberBehavior,
     PlayerSubscription,
     VoiceConnection,
 } from "@discordjs/voice";
+import { stream } from "play-dl";
+import { Video } from "play-dl/dist/YouTube/classes/Video";
 import { dlog } from "../nagLogger";
 import {
-    createSongsFromLink,
-    Song,
+    parsePlaylist,
     songQueue,
-    video_details,
 } from "./songQueue";
 
 /**
@@ -60,7 +61,8 @@ export class nagPlayer {
      */
     @dlog("debug", "Adding song to queue...")
     async addSongsFromLink(url: string): Promise<void> {
-        const songList = await createSongsFromLink(url);
+        // TODO: Add function for playing single music and playlists
+        const songList = await parsePlaylist(url);
         if (songList) {
             for (let i = 0; i < songList.length; i++) {
                 const song = songList[i];
@@ -79,17 +81,19 @@ export class nagPlayer {
      * @throws An Error if no song in queue
      */
     @dlog("debug", "Playing music from queue...")
-    nextSong(): Song {
-        const song = this.songQueue.dequeue();
+    async nextSong(): Promise<Video> {
+        const video = this.songQueue.dequeue();
 
-        if (song) {
-            this.player.play(song.resource);
+        if (video) {
+            const musicStream = createAudioResource(
+                (await stream(video.url as string))
+                    .stream);
+            this.player.play(musicStream);
+            return video;
         }
         else {
             throw new Error("No songs in queue");
         }
-
-        return song;
     }
 
     /**
@@ -101,16 +105,16 @@ export class nagPlayer {
      * @memberof nagPlayer
      * @callback {{function(vid_details: Song | undefined): void}}
      */
-    playAll(func?: (song: video_details | undefined) => void): void {
+    async playAll(func: (song: Video | undefined) => void): Promise<void> {
         // Will not execute below if already
         if (!this.willPlayAll) {
             // Play current song
-            const song = this.nextSong();
-            if (func) {func(song.songDetails);}
+            const song = await this.nextSong();
+            if (func) {func(song);}
             const callback = async () => {
                 try {
                     this.nextSong();
-                    if (func) {func(song.songDetails);}
+                    if (func) {func(song);}
                 }
                 catch (error) {
                     this.willPlayAll = false;
@@ -125,9 +129,9 @@ export class nagPlayer {
     }
 
     @dlog("debug", "Skipping music")
-    skipMusic(): video_details | undefined {
+    async skipMusic(): Promise<Video | undefined> {
         try {
-            return this.nextSong().songDetails;
+            return await this.nextSong();
         }
         catch (error) {
             this.player.stop();
