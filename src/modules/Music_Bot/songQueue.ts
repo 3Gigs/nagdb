@@ -1,5 +1,7 @@
 import { validate_playlist,
-    playlist_info } from "play-dl";
+    playlist_info,
+    validate,
+    video_info } from "play-dl";
 import { PlayList } from "play-dl/dist/YouTube/classes/Playlist";
 import { Video } from "play-dl/dist/YouTube/classes/Video";
 import { dlog } from "../nagLogger";
@@ -73,7 +75,6 @@ export class songQueue {
 export async function parsePlaylist(input: string):
     Promise<Video[] | undefined> {
     // If single youtube-video detected
-    console.log(validate_playlist(input));
     if (validate_playlist(input)) {
         const vidList: Array<Video> = [];
         let playlist: PlayList | undefined;
@@ -84,14 +85,11 @@ export async function parsePlaylist(input: string):
                 const playlistAll = await playlist.fetch();
                 if (playlistAll) {
                     const videosAll = await playlistAll.fetch();
+                    // TODO: Support for multiple pages
                     const videosPaged = videosAll.page(1);
                     // Push every song in every page to songList
                     for (const video of videosPaged) {
-                        if (!video) {
-                            throw new Error("Video cannot be found");
-                        }
                         await (async () => {
-                            console.log(video.url);
                             vidList.push(video);
                         })();
                     }
@@ -103,6 +101,28 @@ export async function parsePlaylist(input: string):
             console.log(error);
             throw new Error("Error while parsing playlist!");
         }
+    }
+    else if (validate(input)) {
+        const vidList: Array<Video> = [];
+        const vid_info: video_details = (await video_info(input)).video_details;
+        const video = new Video(
+            {
+                id: vid_info.id,
+                title: vid_info.title,
+                description: vid_info.description,
+                duration_raw: vid_info.durationRaw,
+                duration: vid_info.durationRaw,
+                uploadedAt: vid_info.uploadedDate,
+                views: vid_info.views,
+                thumbnail: vid_info.thumbnail,
+                channel: vid_info.channel,
+                likes: !!vid_info.live,
+                private: !!vid_info.private,
+                tags: vid_info.tags,
+            });
+
+        vidList.push(video);
+        return vidList;
     }
     else {
         throw new Error("Not a valid playlist!");

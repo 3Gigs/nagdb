@@ -60,7 +60,7 @@ export class nagPlayer {
      * @throws An Error if cannot unable to create Song array
      */
     @dlog("debug", "Adding song to queue...")
-    async addSongsFromLink(url: string): Promise<void> {
+    async addSongs(url: string): Promise<void> {
         // TODO: Add function for playing single music and playlists
         const songList = await parsePlaylist(url);
         if (songList) {
@@ -106,15 +106,16 @@ export class nagPlayer {
      * @callback {{function(vid_details: Song | undefined): void}}
      */
     async playAll(func: (song: Video | undefined) => void): Promise<void> {
-        // Will not execute below if already
+        // Will not execute below this function already called
         if (!this.willPlayAll) {
             // Play current song
             const song = await this.nextSong();
             if (func) {func(song);}
+            // Used for event callback below
             const callback = async () => {
                 try {
-                    this.nextSong();
-                    if (func) {func(song);}
+                    const music = await this.nextSong();
+                    if (func) {func(music);}
                 }
                 catch (error) {
                     this.willPlayAll = false;
@@ -130,12 +131,13 @@ export class nagPlayer {
 
     @dlog("debug", "Skipping music")
     async skipMusic(): Promise<Video | undefined> {
-        try {
-            return await this.nextSong();
-        }
-        catch (error) {
-            this.player.stop();
-            return;
-        }
+        let song = undefined;
+        Promise.resolve(this.nextSong())
+            .then(() => { song = this.nextSong(); })
+            .catch(() => {
+                this.player.stop();
+            });
+        // TODO
+        return song;
     }
 }

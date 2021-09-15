@@ -16,7 +16,8 @@ import {
 import { nagPlayer } from "../modules/Music_Bot/nagPlayer";
 import { guildPlayers } from "../modules/Music_Bot/guildPlayers";
 import { nagLogger } from "../modules/nagLogger";
-import { video_details } from "../modules/Music_Bot/songQueue";
+import { Video } from "play-dl/dist/YouTube/classes/Video";
+import { Channel } from "play-dl/dist/YouTube/classes/Channel";
 
 /**
  * Re-usable function for making a now playing display
@@ -24,18 +25,28 @@ import { video_details } from "../modules/Music_Bot/songQueue";
  * @param {video_details} Details
  */
 export const nowPlayingEmbedCreator =
-    (details: video_details): MessageEmbed => {
-        const embed = new MessageEmbed();
-        embed.setColor("AQUA")
-            .setTitle("🎧 Now Playing!")
-            .setThumbnail(details.thumbnail.url)
-            .setURL(details.url)
-            .addFields(
-                { name: "Title", value: details.title },
-                { name: "Channel", value: details.channel.name },
-                { name: "Length", value: details.durationRaw }
-            );
-        return embed;
+    (video: Video): MessageEmbed => {
+        if (video) {
+            const embed = new MessageEmbed();
+            embed.setColor("AQUA")
+                .setTitle("🎧 Now Playing!")
+                .addFields(
+                    { name: "Title", value: video.title as string },
+                    { name: "Channel", value: (video.channel as Channel)
+                        .name as string },
+                    { name: "Length", value: video.durationRaw }
+                );
+            if (video.thumbnail && video.thumbnail.url) {
+                embed.setThumbnail(video.thumbnail.url);
+            }
+            if (video.url) {
+                embed.setURL(video.url);
+            }
+            return embed;
+        }
+        else {
+            throw new Error("Cannot create now-playing embed!");
+        }
     };
 
 /**
@@ -73,20 +84,7 @@ module.exports = {
             subcommand
                 .setName("skip")
                 .setDescription("Skips current song")),
-    /*
-    .addStringOption(option =>
-    option
-    .setName("input")
-    .setDescription("Link or search query")
-    .setRequired(true))
-    .addStringOption(option =>
-    option
-    .setName("filter")
-    .setDescription("Set FFMpeg filters")
-    .setRequired(false)),
-    */
     async execute(interaction: CommandInteraction) {
-        // Add song and playing implementation
         if (interaction.options.getSubcommand() === "play") {
             const input = interaction.options.getString("input");
 
@@ -95,7 +93,9 @@ module.exports = {
             }
             else if (interaction.guild !== null) {
                 const guild = interaction.guild;
+                // Attempt to get guild's nagPlayer
                 let player = guildPlayers.get(interaction.guild.id);
+                // If not, create new player
                 if (!player) {
                     let connection = getVoiceConnection(guild.id);
                     if (!connection) {
@@ -146,7 +146,7 @@ module.exports = {
                 }
 
                 try {
-                    await player.addSongsFromLink(input);
+                    await player.addSongs(input);
                     await interaction.reply("Adding songs to queue...");
                 }
                 catch (error) {
@@ -157,14 +157,13 @@ module.exports = {
                 }
                 // Continue to display song information until
                 // there's no more
-                player.playAll((details) => {
-                    if (details) {
+                player.playAll((video) => {
+                    if (video) {
                         interaction.editReply(
-                            { embeds: [nowPlayingEmbedCreator(details)] });
+                            { embeds: [nowPlayingEmbedCreator(video)] });
                     }
                     else {
-                        interaction.editReply("No more songs in queue....");
-                        // Auto delete this message
+                        interaction.followUp("No more songs in queue....");
                     }
                 });
             }
@@ -183,10 +182,11 @@ module.exports = {
                 }
                 else {
                     await interaction.reply("Skipping music...");
-                    const songDetails = player.skipMusic();
-                    if (songDetails) {
+                    const video = await player.skipMusic();
+                    if (video) {
                         await interaction.editReply(
-                            { embeds: [nowPlayingEmbedCreator(songDetails)] });
+                            { embeds: [(nowPlayingEmbedCreator(video))] }
+                        );
                     }
                 }
             }
