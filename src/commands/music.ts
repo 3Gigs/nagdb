@@ -34,7 +34,7 @@ export const nowPlayingEmbedCreator =
                     { name: "Title", value: video.title as string },
                     { name: "Channel", value: (video.channel as Channel)
                         .name as string },
-                    { name: "Length", value: video.durationRaw }
+                    { name: "Length", value: video.durationRaw },
                 );
             if (video.thumbnail && video.thumbnail.url) {
                 embed.setThumbnail(video.thumbnail.url);
@@ -86,7 +86,12 @@ module.exports = {
         .addSubcommand(subcommand =>
             subcommand
                 .setName("skip")
-                .setDescription("Skips current song")),
+                .setDescription("Skips current song"))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName("stop")
+                .setDescription("Stops music player and disconnection from " +
+                    "voice channel")),
     async execute(interaction: CommandInteraction) {
         if (interaction.options.getSubcommand() === "play") {
             const input = interaction.options.getString("input");
@@ -160,11 +165,8 @@ module.exports = {
                 }
                 player.playAll((video) => {
                     if (video) {
-                        interaction.editReply(
+                        interaction.followUp(
                             { embeds: [nowPlayingEmbedCreator(video)] });
-                    }
-                    else {
-                        interaction.followUp("No more songs in queue....");
                     }
                 });
             }
@@ -206,6 +208,8 @@ module.exports = {
                 else {
                     player.destroy();
                     guildPlayers.delete(guild.id);
+                    // Bot will be destroyed by disconnect handler above
+                    await interaction.reply("Bot stopped");
                 }
             }
             else {

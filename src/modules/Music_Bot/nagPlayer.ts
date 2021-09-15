@@ -6,12 +6,17 @@ import {
     PlayerSubscription,
     VoiceConnection,
 } from "@discordjs/voice";
-import { stream } from "play-dl";
+import { playlist_info,
+    stream,
+    validate,
+    validate_playlist,
+    video_info } from "play-dl";
+import { PlayList } from "play-dl/dist/YouTube/classes/Playlist";
 import { Video } from "play-dl/dist/YouTube/classes/Video";
 import { dlog } from "../nagLogger";
 import {
-    parsePlaylist,
     songQueue,
+    video_details,
 } from "./songQueue";
 
 /**
@@ -53,6 +58,74 @@ export class nagPlayer {
     }
 
     /**
+     * Create a song or songlist from a youtube-dl supported link
+     *
+     * @export
+     * @param {string} input
+     * @memberof nagPlayer
+     * @return {*}  {(Song | SongList)}
+     */
+    static async parsePlaylist(input: string):
+        // TODO: Possibly combine this? (Cooode cleanup)
+        Promise<Video[] | undefined> {
+        if (validate_playlist(input)) {
+            const vidList: Array<Video> = [];
+            let playlist: PlayList | undefined;
+
+            try {
+                playlist = await playlist_info(input);
+                if (playlist) {
+                    const playlistAll = await playlist.fetch();
+                    if (playlistAll) {
+                        const videosAll = await playlistAll.fetch();
+                        // TODO: Support for multiple pages
+                        for (let i = 1; i <= videosAll.total_pages; i++) {
+                            for (const video of videosAll.page(i)) {
+                                await (async () => {
+                                    vidList.push(video);
+                                })();
+                            }
+                        }
+                        // Push every song in every page to songList
+                    }
+                    return vidList;
+                }
+            }
+            catch (error) {
+                console.log(error);
+                throw new Error("Error while parsing playlist!");
+            }
+        }
+        // If single youtube-video detected
+        else if (validate(input)) {
+            const vidList: Array<Video> = [];
+            const vid_info: video_details = (await video_info(input))
+                .video_details;
+            const video = new Video(
+                {
+                    id: vid_info.id,
+                    title: vid_info.title,
+                    description: vid_info.description,
+                    duration_raw: vid_info.durationRaw,
+                    duration: vid_info.durationRaw,
+                    uploadedAt: vid_info.uploadedDate,
+                    views: vid_info.views,
+                    thumbnail: vid_info.thumbnail,
+                    channel: vid_info.channel,
+                    likes: !!vid_info.live,
+                    private: !!vid_info.private,
+                    tags: vid_info.tags,
+                });
+
+            vidList.push(video);
+            return vidList;
+        }
+        else {
+            throw new Error("Not a valid playlist!");
+        }
+    }
+
+    /**
      * Add song to queue from link
      *
      * @param {string} url
@@ -62,7 +135,7 @@ export class nagPlayer {
     @dlog("debug", "Adding song to queue...")
     async addSongs(url: string): Promise<void> {
         // TODO: Add function for playing single music and playlists
-        const songList = await parsePlaylist(url);
+        const songList = await nagPlayer.parsePlaylist(url);
         if (songList) {
             for (let i = 0; i < songList.length; i++) {
                 const song = songList[i];
@@ -133,11 +206,10 @@ export class nagPlayer {
     async skipMusic(): Promise<Video | undefined> {
         let song = undefined;
         Promise.resolve(this.nextSong())
-            .then(() => { song = this.nextSong(); })
+            .then((music) => { song = music; })
             .catch(() => {
                 this.player.stop();
             });
-        // TODO
         return song;
     }
 
@@ -150,6 +222,5 @@ export class nagPlayer {
         this.player.stop();
         this.subscription.unsubscribe();
         this.connection.disconnect();
-        this.connection.destroy();
     }
 }
