@@ -105,7 +105,7 @@ export class nagPlayer {
      * @memberof nagPlayer
      * @callback {{function(vid_details: Song | undefined): void}}
      */
-    async playAll(func: (song: Video | undefined) => void): Promise<void> {
+    async playAll(func?: (song: Video | undefined) => void): Promise<void> {
         // Will not execute below this function already called
         if (!this.willPlayAll) {
             // Play current song
@@ -139,5 +139,17 @@ export class nagPlayer {
             });
         // TODO
         return song;
+    }
+
+    clearMusic(): void {
+        this.player.stop();
+        this.songQueue.clear();
+    }
+
+    destroy(): void {
+        this.player.stop();
+        this.subscription.unsubscribe();
+        this.connection.disconnect();
+        this.connection.destroy();
     }
 }

@@ -63,6 +63,16 @@ export class songQueue {
         const result = this.queue.shift();
         return result ? result : undefined;
     }
+
+    /**
+     * Clears song queue
+     *
+     * @memberof songQueue
+     */
+    @dlog("debug", "Clearing queue")
+    clear(): void {
+        this.queue = [];
+    }
 }
 
 /**
@@ -73,8 +83,8 @@ export class songQueue {
  * @return {*}  {(Song | SongList)}
  */
 export async function parsePlaylist(input: string):
+    // TODO: Possibly combine this? (Cooode cleanup)
     Promise<Video[] | undefined> {
-    // If single youtube-video detected
     if (validate_playlist(input)) {
         const vidList: Array<Video> = [];
         let playlist: PlayList | undefined;
@@ -102,6 +112,7 @@ export async function parsePlaylist(input: string):
             throw new Error("Error while parsing playlist!");
         }
     }
+    // If single youtube-video detected
     else if (validate(input)) {
         const vidList: Array<Video> = [];
         const vid_info: video_details = (await video_info(input)).video_details;

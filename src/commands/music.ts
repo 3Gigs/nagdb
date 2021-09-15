@@ -67,6 +67,9 @@ const joinVC = function(author: GuildMember): VoiceConnection {
     return connection;
 };
 
+/**
+ * Handles the bot's music command
+ */
 module.exports = {
     nowPlayingEmbedCreator,
     data: new SlashCommandBuilder()
@@ -155,8 +158,6 @@ module.exports = {
                     console.log(error);
                     return;
                 }
-                // Continue to display song information until
-                // there's no more
                 player.playAll((video) => {
                     if (video) {
                         interaction.editReply(
@@ -188,6 +189,23 @@ module.exports = {
                             { embeds: [(nowPlayingEmbedCreator(video))] }
                         );
                     }
+                }
+            }
+            else {
+                await interaction.reply("Cannot find guild!");
+            }
+        }
+        else if (interaction.options.getSubcommand() === "stop") {
+            const guild = interaction.guild;
+            if (guild) {
+                const player = guildPlayers.get(guild.id);
+                if (!player) {
+                    await interaction.reply("Currently not connected to this " +
+                    "guild's voice channel!");
+                }
+                else {
+                    player.destroy();
+                    guildPlayers.delete(guild.id);
                 }
             }
             else {
