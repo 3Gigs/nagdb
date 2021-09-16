@@ -6,18 +6,11 @@ import {
     PlayerSubscription,
     VoiceConnection,
 } from "@discordjs/voice";
-import { playlist_info,
-    stream,
-    validate,
-    validate_playlist,
-    video_info } from "play-dl";
-import { PlayList } from "play-dl/dist/YouTube/classes/Playlist";
-import { Video } from "play-dl/dist/YouTube/classes/Video";
+import { stream } from "play-dl";
 import { dlog } from "../nagLogger";
-import {
-    songQueue,
-    video_details,
-} from "./songQueue";
+import { nagLinkParser, nagVideo } from "./linkParser";
+import { songQueue } from "./songQueue";
+
 
 /**
  * **Discord bot music player implementation**
@@ -58,74 +51,6 @@ export class nagPlayer {
     }
 
     /**
-     * Create a song or songlist from a youtube-dl supported link
-     *
-     * @export
-     * @param {string} input
-     * @memberof nagPlayer
-     * @return {*}  {(Song | SongList)}
-     */
-    static async parsePlaylist(input: string):
-        // TODO: Possibly combine this? (Cooode cleanup)
-        Promise<Video[] | undefined> {
-        if (validate_playlist(input)) {
-            const vidList: Array<Video> = [];
-            let playlist: PlayList | undefined;
-
-            try {
-                playlist = await playlist_info(input);
-                if (playlist) {
-                    const playlistAll = await playlist.fetch();
-                    if (playlistAll) {
-                        const videosAll = await playlistAll.fetch();
-                        // TODO: Support for multiple pages
-                        for (let i = 1; i <= videosAll.total_pages; i++) {
-                            for (const video of videosAll.page(i)) {
-                                await (async () => {
-                                    vidList.push(video);
-                                })();
-                            }
-                        }
-                        // Push every song in every page to songList
-                    }
-                    return vidList;
-                }
-            }
-            catch (error) {
-                console.log(error);
-                throw new Error("Error while parsing playlist!");
-            }
-        }
-        // If single youtube-video detected
-        else if (validate(input)) {
-            const vidList: Array<Video> = [];
-            const vid_info: video_details = (await video_info(input))
-                .video_details;
-            const video = new Video(
-                {
-                    id: vid_info.id,
-                    title: vid_info.title,
-                    description: vid_info.description,
-                    duration_raw: vid_info.durationRaw,
-                    duration: vid_info.durationRaw,
-                    uploadedAt: vid_info.uploadedDate,
-                    views: vid_info.views,
-                    thumbnail: vid_info.thumbnail,
-                    channel: vid_info.channel,
-                    likes: !!vid_info.live,
-                    private: !!vid_info.private,
-                    tags: vid_info.tags,
-                });
-
-            vidList.push(video);
-            return vidList;
-        }
-        else {
-            throw new Error("Not a valid playlist!");
-        }
-    }
-
-    /**
      * Add song to queue from link
      *
      * @param {string} url
@@ -135,7 +60,7 @@ export class nagPlayer {
     @dlog("debug", "Adding song to queue...")
     async addSongs(url: string): Promise<void> {
         // TODO: Add function for playing single music and playlists
-        const songList = await nagPlayer.parsePlaylist(url);
+        const songList = await nagLinkParser.parseInputLink(url);
         if (songList) {
             for (let i = 0; i < songList.length; i++) {
                 const song = songList[i];
@@ -154,7 +79,7 @@ export class nagPlayer {
      * @throws An Error if no song in queue
      */
     @dlog("debug", "Playing music from queue...")
-    async nextSong(): Promise<Video> {
+    async nextSong(): Promise<nagVideo> {
         const video = this.songQueue.dequeue();
 
         if (video) {
@@ -178,7 +103,7 @@ export class nagPlayer {
      * @memberof nagPlayer
      * @callback {{function(vid_details: Song | undefined): void}}
      */
-    async playAll(func?: (song: Video | undefined) => void): Promise<void> {
+    async playAll(func?: (song: nagVideo | undefined) => void): Promise<void> {
         // Will not execute below this function already called
         if (!this.willPlayAll) {
             // Play current song
@@ -203,7 +128,7 @@ export class nagPlayer {
     }
 
     @dlog("debug", "Skipping music")
-    async skipMusic(): Promise<Video | undefined> {
+    async skipMusic(): Promise<nagVideo | undefined> {
         let song = undefined;
         Promise.resolve(this.nextSong())
             .then((music) => { song = music; })

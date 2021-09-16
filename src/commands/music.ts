@@ -16,8 +16,7 @@ import {
 import { nagPlayer } from "../modules/Music_Bot/nagPlayer";
 import { guildPlayers } from "../modules/Music_Bot/guildPlayers";
 import { nagLogger } from "../modules/nagLogger";
-import { Video } from "play-dl/dist/YouTube/classes/Video";
-import { Channel } from "play-dl/dist/YouTube/classes/Channel";
+import { nagVideo } from "../modules/Music_Bot/linkParser";
 
 /**
  * Re-usable function for making a now playing display
@@ -25,19 +24,19 @@ import { Channel } from "play-dl/dist/YouTube/classes/Channel";
  * @param {video_details} Details
  */
 export const nowPlayingEmbedCreator =
-    (video: Video): MessageEmbed => {
+    (video: nagVideo): MessageEmbed => {
         if (video) {
             const embed = new MessageEmbed();
+            console.log(video.title);
             embed.setColor("AQUA")
                 .setTitle("🎧 Now Playing!")
                 .addFields(
-                    { name: "Title", value: video.title as string },
-                    { name: "Channel", value: (video.channel as Channel)
-                        .name as string },
-                    { name: "Length", value: video.durationRaw },
+                    { name: "Title", value: video.title ?? "No title" },
+                    { name: "Channel", value: video.author ?? "No author" },
+                    { name: "Length", value: video.duration ?? "0:00" },
                 );
-            if (video.thumbnail && video.thumbnail.url) {
-                embed.setThumbnail(video.thumbnail.url);
+            if (video.thumbnailURL) {
+                embed.setThumbnail(video.thumbnailURL);
             }
             if (video.url) {
                 embed.setURL(video.url);

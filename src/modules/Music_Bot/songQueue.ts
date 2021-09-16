@@ -1,5 +1,5 @@
-import { Video } from "play-dl/dist/YouTube/classes/Video";
 import { dlog } from "../nagLogger";
+import { nagVideo } from "./linkParser";
 
 /**
  * **See play-dl's video_details**
@@ -37,7 +37,7 @@ export interface video_details {
  * @class songQueue
  */
 export class songQueue {
-    private queue: Array<Video>;
+    private queue: Array<nagVideo>;
 
     public constructor() {
         this.queue = [];
@@ -49,7 +49,7 @@ export class songQueue {
      * @returns Position in queue
      */
     @dlog("debug", "Adding song to queue")
-    enqueue(music: Video): number | undefined {
+    enqueue(music: nagVideo): number | undefined {
         const result = this.queue.push(music);
         return result ? result : undefined;
     }
@@ -59,7 +59,7 @@ export class songQueue {
      * @returns Next Djs/Voice AudioResource to play
      */
     @dlog("debug", "Dequeuing...")
-    dequeue(): Video | undefined {
+    dequeue(): nagVideo | undefined {
         const result = this.queue.shift();
         return result ? result : undefined;
     }
