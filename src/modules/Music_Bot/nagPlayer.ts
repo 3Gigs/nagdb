@@ -7,7 +7,6 @@ import {
     VoiceConnection,
 } from "@discordjs/voice";
 import { stream } from "play-dl";
-import { dlog } from "../nagLogger";
 import { nagLinkParser, nagVideo } from "./linkParser";
 import { songQueue } from "./songQueue";
 
@@ -57,7 +56,6 @@ export class nagPlayer {
      * @memberof nagPlayer
      * @throws An Error if cannot unable to create Song array
      */
-    @dlog("debug", "Adding song to queue...")
     async addSongs(url: string): Promise<void> {
         // TODO: Add function for playing single music and playlists
         const songList = await nagLinkParser.parseInputLink(url);
@@ -78,7 +76,6 @@ export class nagPlayer {
      * @memberof nagPlayer
      * @throws An Error if no song in queue
      */
-    @dlog("debug", "Playing music from queue...")
     async nextSong(): Promise<nagVideo> {
         const video = this.songQueue.dequeue();
 
@@ -127,7 +124,6 @@ export class nagPlayer {
         }
     }
 
-    @dlog("debug", "Skipping music")
     async skipMusic(): Promise<nagVideo | undefined> {
         let song = undefined;
         Promise.resolve(this.nextSong())

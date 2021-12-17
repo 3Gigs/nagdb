@@ -1,4 +1,3 @@
-import { dlog } from "../nagLogger";
 import { nagVideo } from "./linkParser";
 
 /**
@@ -48,7 +47,6 @@ export class songQueue {
      *
      * @returns Position in queue
      */
-    @dlog("debug", "Adding song to queue")
     enqueue(music: nagVideo): number | undefined {
         const result = this.queue.push(music);
         return result ? result : undefined;
@@ -58,7 +56,6 @@ export class songQueue {
      *
      * @returns Next Djs/Voice AudioResource to play
      */
-    @dlog("debug", "Dequeuing...")
     dequeue(): nagVideo | undefined {
         const result = this.queue.shift();
         return result ? result : undefined;
@@ -69,7 +66,6 @@ export class songQueue {
      *
      * @memberof songQueue
      */
-    @dlog("debug", "Clearing queue")
     clear(): void {
         this.queue = [];
     }

@@ -1,7 +1,6 @@
 /** @module commandHandler */
 import { Client, Collection } from "discord.js";
 import fs from "fs";
-import { nagLogger } from "./modules/nagLogger";
 
 /** Discord.js' Client but with commands collection added */
 export interface clientCommands extends Client {
@@ -91,7 +90,6 @@ export class commandHandler {
             (this.client.commands as Collection<string, unknown>)
                 .set(command.data.name, command);
         });
-        nagLogger.getInstance().log("info", "All commands refreshed");
     }
 
     /**
@@ -114,8 +112,7 @@ export class commandHandler {
                 await command.execute(interaction);
             }
             catch (error) {
-                nagLogger.getInstance().log("warn",
-                    "Cannot execute command\n" + error);
+                console.log(error);
             }
         });
     }

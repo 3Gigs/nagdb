@@ -15,7 +15,6 @@ import {
 } from "discord.js";
 import { nagPlayer } from "../modules/Music_Bot/nagPlayer";
 import { guildPlayers } from "../modules/Music_Bot/guildPlayers";
-import { nagLogger } from "../modules/nagLogger";
 import { nagVideo } from "../modules/Music_Bot/linkParser";
 
 /**
@@ -61,7 +60,7 @@ const joinVC = function(author: GuildMember): VoiceConnection {
     const connection = joinVoiceChannel({
         channelId: author.voice.channelId as string,
         guildId: author.guild.id as string,
-        adapterCreator: author.guild.voiceAdapterCreator,
+        adapterCreator:author.guild.voiceAdapterCreator,
     });
     return connection;
 };
