@@ -1,23 +1,15 @@
 import { playlist_info,
     validate,
     validate_playlist,
-    video_info } from "play-dl";
-import { video_details } from "./songQueue";
+    video_basic_info } from "play-dl";
+import { Video } from "play-dl/dist/YouTube/classes/Video"
 
-export interface nagVideo {
-    url: string,
-    duration: string,
-    thumbnailURL?: string;
-    album?: string;
-    title?: string;
-    author?: string;
-}
 
 export class nagLinkParser {
     private static parseYTLink = async (input: string):
-    Promise<nagVideo[] | undefined> => {
+    Promise<Video[] | undefined> => {
         if (validate_playlist(input)) {
-            const nagVideoList: Array<nagVideo> = [];
+            const nagVideoList: Array<Video> = [];
 
             try {
                 const playlist = await playlist_info(input);
@@ -28,14 +20,7 @@ export class nagLinkParser {
                     if (playlistAll) {
                         for (let i = 1; i <= playlistAll.total_pages; i++) {
                             for (const video of playlistAll.page(i)) {
-                                await (async () => {
-                                    nagVideoList.push({
-                                        url: video.url as string,
-                                        duration: video.durationRaw,
-                                        title: video.title,
-                                        author: video.channel?.name,
-                                        thumbnailURL: video.thumbnail?.url });
-                                })();
+                                nagVideoList.push(video);
                             }
                         }
                     }
@@ -48,15 +33,14 @@ export class nagLinkParser {
             }
         }
         else if (validate(input)) {
-            const nagVideoList: Array<nagVideo> = [];
-            const vid_info: video_details = (await video_info(input))
+            const nagVideoList: Array<Video> = [];
+            const vid_info: any = (await video_basic_info(input))
                 .video_details;
 
             nagVideoList.push({
                 url: vid_info.url as string,
-                duration: vid_info.durationRaw,
                 title: vid_info.title,
-                author: vid_info.channel?.name,
+                author: vid_info.channel.name,
                 thumbnailURL: vid_info.thumbnail?.url });
 
             return nagVideoList;
