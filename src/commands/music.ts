@@ -2,19 +2,12 @@ import {
     SlashCommandBuilder,
 } from "@discordjs/builders";
 import {
-    entersState,
-    getVoiceConnection,
-    joinVoiceChannel,
-    VoiceConnection,
-    VoiceConnectionStatus,
-} from "@discordjs/voice";
-import {
     CommandInteraction,
     GuildMember,
     MessageEmbed,
+    VoiceChannel,
 } from "discord.js";
 import { nagPlayer } from "../modules/Music_Bot/nagPlayer";
-import { guildPlayers } from "../modules/Music_Bot/guildPlayers";
 import { nagVideo } from "../modules/Music_Bot/linkParser";
 
 /**
@@ -74,7 +67,19 @@ module.exports = {
                     "voice channel")),
     async execute(interaction: CommandInteraction) {
         if (interaction.options.getSubcommand() === "play") {
-            console.log(nagPlayer.bruh);
+            const player = new nagPlayer(
+                (interaction.member as GuildMember)
+                    .voice.channel as VoiceChannel);
+            if (!player) {
+                interaction.reply("You're not in a voice channel!");
+                return;
+            }
+            const input = interaction.options.getString("input");
+            if (!input) {
+                interaction.reply("No input found!");
+                return;
+            }
+            player.addSongs(input);
         }
     },
 };
