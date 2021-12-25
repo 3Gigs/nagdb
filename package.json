@@ -32,10 +32,12 @@
     "@discordjs/voice": "^0.6.0",
     "discord-api-types": "^0.22.0",
     "discord.js": "^13.3.1",
+    "easylinkedlist": "^1.1.0",
     "ffmpeg-static": "^4.4.0",
-    "fifo": "^2.4.1",
     "libsodium-wrappers": "^0.7.9",
+    "play-dl": "^1.6.2",
     "sodium": "^3.0.2",
-    "winston": "^3.3.3"
+    "winston": "^3.3.3",
+    "ytdl-core": "^4.9.2"
   }
 }

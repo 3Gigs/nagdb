@@ -7,8 +7,7 @@ import {
     MessageEmbed,
     VoiceChannel,
 } from "discord.js";
-import { nagPlayer } from "../modules/Music_Bot/nagPlayer";
-import { nagVideo } from "../modules/Music_Bot/linkParser";
+import { nagPlayer, nagVideo } from "../modules/Music_Bot/nagPlayer";
 
 /**
  * Re-usable function for making a now playing display
@@ -23,15 +22,15 @@ export const nowPlayingEmbedCreator =
             embed.setColor("AQUA")
                 .setTitle("🎧 Now Playing!")
                 .addFields(
-                    { name: "Title", value: video.title ?? "No title" },
-                    { name: "Channel", value: video.author ?? "No author" },
-                    { name: "Length", value: video.duration ?? "0:00" },
+                    { name: "Title", value: video.title },
+                    { name: "Channel", value: video.channel },
+                    { name: "Duration", value: video.duration }
                 );
-            if (video.thumbnailURL) {
-                embed.setThumbnail(video.thumbnailURL);
+            if (video.thumbnailUrl) {
+                embed.setThumbnail(video.thumbnailUrl);
             }
-            if (video.url) {
-                embed.setURL(video.url);
+            if (video.channel) {
+                embed.setURL(video.streamUrl);
             }
             return embed;
         }
@@ -76,10 +75,20 @@ module.exports = {
             }
             const input = interaction.options.getString("input");
             if (!input) {
-                interaction.reply("No input found!");
+                await interaction.reply("No input found!");
                 return;
             }
-            player.addSongs(input);
+
+            // If input is not a link
+            await interaction.reply("Adding songs to queue");
+            if (!await player.addSongsFromUrl(input)) {
+                await interaction.reply("Not a link!");
+            }
+            player.playAll((song) => {
+                interaction.followUp({
+                    embeds: [nowPlayingEmbedCreator(song)],
+                });
+            });
         }
     },
 };

@@ -10,6 +10,7 @@
         "resolveJsonModule": true,
         "outDir": "./build",
         "experimentalDecorators": true,
+        "moduleResolution": "Node",
     },
     "include": ["src/*", "src/commands/*", "src/modules"],
     "exclude": ["node_modules", "docs"]

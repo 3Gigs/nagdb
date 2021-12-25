@@ -11,9 +11,11 @@ import {
     StreamType,
     VoiceConnection,
 } from "@discordjs/voice";
-import { stream, video_basic_info } from "play-dl";
 import { VoiceChannel } from "discord.js";
-import fifo from "fifo";
+import { easyLinkedList } from "easylinkedlist";
+import { playlist_info,
+    stream, video_basic_info, YouTubeChannel,
+    yt_validate } from "play-dl";
 
 /**
  * **Discord voice channel bot music player implementation**
@@ -27,7 +29,7 @@ export class nagPlayer {
     private subscription : PlayerSubscription | undefined;
     private playerMusic : AudioPlayer | undefined;
     private playingAll : boolean;
-    private queue : fifo<any>;
+    private queue : easyLinkedList<nagVideo>;
 
     /**
      * Creates an instance of nagPlayer with a specified VoiceChannel
@@ -36,7 +38,7 @@ export class nagPlayer {
      */
     public constructor(vc : VoiceChannel) {
         this.connection = this.joinChannel(vc)?.connection;
-        this.queue = fifo();
+        this.queue = new easyLinkedList();
         this.playingAll = false;
     }
 
@@ -108,20 +110,20 @@ export class nagPlayer {
      * Plays all music from queue, with optional callback function for
      * displaying current song playing
      *
-     * @return {*}  {Promise<void>}
+     * @param func - Executes every time a new song will be played
      * @memberof nagPlayer
      */
-    public async playAll(func? : (song: any) => void) : Promise<void> {
+    public async playAll(func? : (song: nagVideo) => void) : Promise<void> {
         if (this.playingAll) {
             return;
         }
         const p = async () => {
-            const song = this.queue.shift()?.value.video_details;
+            const song = this.queue.shift();
             if (song) {
                 if (func) {
                     func(song);
                 }
-                const s = await stream(song.url);
+                const s = await stream(song.streamUrl);
                 this.playSong(createAudioResource(s.stream, {
                     inputType: StreamType.Arbitrary,
                 }));
@@ -138,13 +140,48 @@ export class nagPlayer {
     }
 
     /**
-     * Accepts a request string (search query or link) and adds song(s) to queue
+     * Checks if input is a link, and adds the songs to queue if it's a link
      *
-     * @param {string} request
-     * @return {*}  {Promise<boolean>}
+     * @param request - The input
+     * @return true if song(s) were added to queue, false otherwise
      * @memberof nagPlayer
      */
-    async addSongs(request : string): Promise<void> {
-        this.queue.push((await video_basic_info(request)).video_details);
+    async addSongsFromUrl(request : string): Promise<boolean> {
+        if (yt_validate(request) == "playlist") {
+            const pl = await playlist_info(request);
+            await pl.fetch();
+            for (let i = 0; i <= pl.total_pages; i++) {
+                pl.page(i).forEach((s) => {
+                    this.queue.push({
+                        streamUrl: s.url,
+                        thumbnailUrl: s.thumbnails[0].url,
+                        title: s.title as string,
+                        channel: (s.channel as YouTubeChannel).name as string,
+                        duration: s.durationRaw,
+                    });
+                });
+            }
+
+            return true;
+        }
+        if (yt_validate(request) == "video") {
+            const vid = (await video_basic_info(request)).video_details;
+            this.queue.push({
+                streamUrl: vid.url,
+                thumbnailUrl: vid.thumbnails[0].url,
+                title: vid.title as string,
+                channel: (vid.channel as YouTubeChannel).name as string,
+                duration: vid.durationRaw,
+            });
+        }
+        return false;
     }
+}
+
+export interface nagVideo {
+    streamUrl: string;
+    thumbnailUrl: string;
+    title: string;
+    channel: string;
+    duration : string;
 }
