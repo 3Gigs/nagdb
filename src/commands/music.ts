@@ -82,7 +82,7 @@ module.exports = {
             // If input is not a link
             await interaction.reply("Adding songs to queue");
             if (!await player.addSongsFromUrl(input)) {
-                await interaction.reply("Not a link!");
+                await interaction.followUp("Not a link!");
             }
             player.playAll((song) => {
                 interaction.followUp({

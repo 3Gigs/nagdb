@@ -103,7 +103,10 @@ export class nagPlayer {
                 noSubscriber: NoSubscriberBehavior.Play,
             },
         });
-        this.playerMusic.play(resource);
+        if (!this.subscription) {
+            this.subscription = this.connection?.subscribe(this.playerMusic);
+            this.playerMusic.play(resource);
+        }
     }
 
     /**
@@ -117,15 +120,18 @@ export class nagPlayer {
         if (this.playingAll) {
             return;
         }
+        this.playingAll = true;
         const p = async () => {
             const song = this.queue.shift();
             if (song) {
+                console.log("Playing " + song.title);
                 if (func) {
                     func(song);
                 }
                 const s = await stream(song.streamUrl);
+                console.log("Playing song NOW!!!");
                 this.playSong(createAudioResource(s.stream, {
-                    inputType: StreamType.Arbitrary,
+                    inputType: s.type,
                 }));
             }
             else {
@@ -134,6 +140,7 @@ export class nagPlayer {
             }
         };
 
+        await p();
         this.playerMusic?.on(AudioPlayerStatus.Idle, async () => {
             p();
         });
@@ -150,7 +157,7 @@ export class nagPlayer {
         if (yt_validate(request) == "playlist") {
             const pl = await playlist_info(request);
             await pl.fetch();
-            for (let i = 0; i <= pl.total_pages; i++) {
+            for (let i = 1; i <= pl.total_pages; i++) {
                 pl.page(i).forEach((s) => {
                     this.queue.push({
                         streamUrl: s.url,
@@ -173,6 +180,7 @@ export class nagPlayer {
                 channel: (vid.channel as YouTubeChannel).name as string,
                 duration: vid.durationRaw,
             });
+            return true;
         }
         return false;
     }
