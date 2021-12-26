@@ -117,7 +117,7 @@ export class nagPlayer {
      * @param {AudioResource} resource
      * @memberof nagPlayer
      */
-    public playSong(resource: AudioResource): void {
+    private playSong(resource: AudioResource): void {
         if (!this.playerMusic) {
             this.playerMusic = createAudioPlayer({
                 behaviors: {
@@ -165,8 +165,11 @@ export class nagPlayer {
                 }));
             }
             else {
+                this.stopPlayer = false;
                 this.playingAll = false;
+                this.subscription?.unsubscribe();
                 this.playerMusic?.removeListener(AudioPlayerStatus.Idle, p);
+                this.playerMusic = undefined;
             }
         };
 
