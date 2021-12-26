@@ -8,7 +8,6 @@ import {
     joinVoiceChannel,
     NoSubscriberBehavior,
     PlayerSubscription,
-    StreamType,
     VoiceConnection,
 } from "@discordjs/voice";
 import { VoiceChannel } from "discord.js";
@@ -29,6 +28,7 @@ export class nagPlayer {
     private subscription : PlayerSubscription | undefined;
     private playerMusic : AudioPlayer | undefined;
     private playingAll : boolean;
+    private stopPlayer : boolean;
     private queue : easyLinkedList<nagVideo>;
 
     /**
@@ -38,8 +38,11 @@ export class nagPlayer {
      */
     public constructor(vc : VoiceChannel) {
         this.connection = this.joinChannel(vc)?.connection;
+        this.subscription = undefined;
+        this.playerMusic = undefined;
         this.queue = new easyLinkedList();
         this.playingAll = false;
+        this.stopPlayer = false;
     }
 
     /**
@@ -60,11 +63,40 @@ export class nagPlayer {
                 adapterCreator: vc.guild
                     .voiceAdapterCreator as DiscordGatewayAdapterCreator,
             });
+            nagPlayer.voiceConnections.set(vc, this);
             return this;
         }
     }
     public getConnection(): VoiceConnection | undefined {
         return this.connection;
+    }
+
+    /**
+     * @param vc The voice channel
+     * @returns True if an instance of nagPlayer
+     * already exists for voice channel
+     */
+    public static hasInstance(vc: VoiceChannel): boolean {
+        if (nagPlayer.voiceConnections.has(vc)) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
+     * Get the voice channel's nagPlayer instance, if it exists
+     * @param vc The voice channel
+     * @returns The nagPlayer instance, or undefined if it doesn't exist
+     */
+    public static getInstance(vc: VoiceChannel): nagPlayer | undefined {
+        if (nagPlayer.voiceConnections.has(vc)) {
+            return nagPlayer.voiceConnections.get(vc);
+        }
+        else {
+            return undefined;
+        }
     }
 
     /**
@@ -78,18 +110,6 @@ export class nagPlayer {
         return this;
     }
 
-    /**
-     * Subscribes to connection to an audio player
-     *
-     * @param {AudioPlayer} player
-     * @return {*}  {(PlayerSubscription | undefined)}
-     * @memberof nagPlayer
-     */
-    private subscribeAudio(player : AudioPlayer):
-    PlayerSubscription | undefined {
-        this.subscription = this.connection?.subscribe(player);
-        return this.subscription;
-    }
 
     /**
      * Plays the specified audio resource
@@ -98,16 +118,28 @@ export class nagPlayer {
      * @memberof nagPlayer
      */
     public playSong(resource: AudioResource): void {
-        this.playerMusic = createAudioPlayer({
-            behaviors: {
-                noSubscriber: NoSubscriberBehavior.Play,
-            },
-        });
+        if (!this.playerMusic) {
+            this.playerMusic = createAudioPlayer({
+                behaviors: {
+                    noSubscriber: NoSubscriberBehavior.Play,
+                },
+            });
+        }
         if (!this.subscription) {
             this.subscription = this.connection?.subscribe(this.playerMusic);
-            this.playerMusic.play(resource);
         }
+        this.playerMusic.play(resource);
+
     }
+
+    get willPlayAll(): boolean {
+        return this.playingAll;
+    }
+
+    set willPlayAll(b : boolean) {
+        this.playingAll = b;
+    }
+
 
     /**
      * Plays all music from queue, with optional callback function for
@@ -116,20 +148,18 @@ export class nagPlayer {
      * @param func - Executes every time a new song will be played
      * @memberof nagPlayer
      */
-    public async playAll(func? : (song: nagVideo) => void) : Promise<void> {
-        if (this.playingAll) {
+    public async playQueue(func? : (song: nagVideo) => void) : Promise<void> {
+        if (this.willPlayAll) {
             return;
         }
-        this.playingAll = true;
         const p = async () => {
             const song = this.queue.shift();
-            if (song) {
-                console.log("Playing " + song.title);
+            if (song && !this.stopPlayer) {
+                this.willPlayAll = true;
                 if (func) {
                     func(song);
                 }
                 const s = await stream(song.streamUrl);
-                console.log("Playing song NOW!!!");
                 this.playSong(createAudioResource(s.stream, {
                     inputType: s.type,
                 }));
@@ -183,6 +213,14 @@ export class nagPlayer {
             return true;
         }
         return false;
+    }
+    public skipMusic(): void {
+        if (!this.playingAll) {
+            return;
+        }
+        // Destroys current audio resource, then sets the player to idle, which
+        // signals the playAll event listener to play the next song
+        this.playerMusic?.stop();
     }
 }
 

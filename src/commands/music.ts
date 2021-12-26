@@ -18,7 +18,6 @@ export const nowPlayingEmbedCreator =
     (video: nagVideo): MessageEmbed => {
         if (video) {
             const embed = new MessageEmbed();
-            console.log(video.title);
             embed.setColor("AQUA")
                 .setTitle("🎧 Now Playing!")
                 .addFields(
@@ -66,9 +65,15 @@ module.exports = {
                     "voice channel")),
     async execute(interaction: CommandInteraction) {
         if (interaction.options.getSubcommand() === "play") {
-            const player = new nagPlayer(
-                (interaction.member as GuildMember)
-                    .voice.channel as VoiceChannel);
+            const vc = (interaction.member as GuildMember)
+                .voice.channel as VoiceChannel;
+            let player;
+            if (nagPlayer.hasInstance(vc)) {
+                player = nagPlayer.getInstance(vc);
+            }
+            else {
+                player = new nagPlayer(vc);
+            }
             if (!player) {
                 interaction.reply("You're not in a voice channel!");
                 return;
@@ -84,11 +89,17 @@ module.exports = {
             if (!await player.addSongsFromUrl(input)) {
                 await interaction.followUp("Not a link!");
             }
-            player.playAll((song) => {
+            await player.playQueue((song) => {
                 interaction.followUp({
                     embeds: [nowPlayingEmbedCreator(song)],
                 });
             });
+        }
+        else if (interaction.options.getSubcommand() === "skip") {
+            interaction.reply("Skipping song...");
+            const p = nagPlayer.getInstance((interaction.member as GuildMember)
+                .voice.channel as VoiceChannel);
+            p?.skipMusic();
         }
     },
 };
