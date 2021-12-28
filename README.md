@@ -19,4 +19,7 @@ A Discord Bot written in Discord.js and Typescript
 ``` node . ```  
 
 ## Generate documentation
-``` npx typedoc src/* ```
+``` npx typedoc src/* ```  
+
+## TODO
+* Handling cases when the person requesting the music player is not in a vc

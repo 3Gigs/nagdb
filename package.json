@@ -19,10 +19,11 @@
   },
   "homepage": "https://github.com/3Gigs/nagdb#readme",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.29.3",
-    "@typescript-eslint/parser": "^4.29.3",
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/parser": "^4.33.0",
     "eslint": "^7.32.0",
-    "typescript": "^4.4.2"
+    "typedoc": "^0.22.10",
+    "typescript": "^4.5.4"
   },
   "dependencies": {
     "@discordjs/builders": "^0.6.0",
@@ -30,11 +31,14 @@
     "@discordjs/rest": "^0.1.0-canary.0",
     "@discordjs/voice": "^0.6.0",
     "discord-api-types": "^0.22.0",
-    "discord.js": "^13.1.0",
+    "discord.js": "^13.3.1",
+    "easylinkedlist": "^1.2.0",
     "ffmpeg-static": "^4.4.0",
-    "play-dl": "^0.7.1",
+    "libsodium-wrappers": "^0.7.9",
+    "nagdl": "^1.0.3",
+    "play-dl": "^1.6.2",
     "sodium": "^3.0.2",
-    "typedoc": "^0.21.8",
-    "winston": "^3.3.3"
+    "winston": "^3.3.3",
+    "ytdl-core": "^4.9.2"
   }
 }

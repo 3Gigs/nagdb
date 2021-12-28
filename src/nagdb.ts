@@ -1,17 +1,19 @@
 import { Client, Intents } from "discord.js";
-import {token} from "../config.json"
-import { commandHandler } from "./commandHandler"
-import { nagLogger } from "./modules/nagLogger"
+import { token } from "../config.json";
+import { commandHandler } from "./commandHandler";
 
 // Create a new client instance
-const client = new Client({ intents: [Intents.FLAGS.GUILDS, 
-            Intents.FLAGS.GUILD_VOICE_STATES] });
-const cmdHandler = new commandHandler(client);
+const client = new Client({ intents: [Intents.FLAGS.GUILDS,
+    Intents.FLAGS.GUILD_VOICE_STATES] });
 
-client.once('ready', () => {
-	console.log('Ready!');
+const cmdHandler = commandHandler.construct(client);
+
+client.once("ready", () => {
     cmdHandler.attachCommandListener();
 });
 
 // Login to Discord with your client's token
 client.login(token);
+
+console.log("Sucessfully logged in!");
+
