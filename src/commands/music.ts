@@ -7,7 +7,8 @@ import {
     MessageEmbed,
     VoiceChannel,
 } from "discord.js";
-import { nagPlayer, nagVideo } from "../modules/Music_Bot/nagPlayer";
+import { nagPlayer } from "../modules/Music_Bot/nagPlayer";
+import { Song } from "nagdl";
 
 /**
  * Re-usable function for making a now playing display
@@ -15,22 +16,30 @@ import { nagPlayer, nagVideo } from "../modules/Music_Bot/nagPlayer";
  * @param {video_details} Details
  */
 export const nowPlayingEmbedCreator =
-    (video: nagVideo): MessageEmbed => {
+    (video: Song): MessageEmbed => {
         if (video) {
             const embed = new MessageEmbed();
             embed.setColor("AQUA")
-                .setTitle("🎧 Now Playing!")
-                .addFields(
-                    { name: "Title", value: video.title },
-                    { name: "Channel", value: video.channel },
-                    { name: "Duration", value: video.duration }
-                );
+                .setTitle("🎧 Now Playing!");
+            if (video.albumName) {
+                embed.addFields({ name: "Album", value: video.albumName });
+            }
+            if (video.title) {
+                embed.addFields({ name: "Title", value: video.title });
+            }
+            if (video.author) {
+                embed.addFields({ name: "Author", value: video.author });
+            }
             if (video.thumbnailUrl) {
                 embed.setThumbnail(video.thumbnailUrl);
             }
-            if (video.channel) {
-                embed.setURL(video.streamUrl);
-            }
+            embed.addFields({
+                name: "Duration", value: video
+                    .duration.durationFormatted,
+            });
+
+
+            embed.setURL(video.url);
             return embed;
         }
         else {
@@ -61,7 +70,7 @@ module.exports = {
         .addSubcommand(subcommand =>
             subcommand
                 .setName("stop")
-                .setDescription("Stops music player and disconnection from " +
+                .setDescription("Stops music player and disconnect from " +
                     "voice channel")),
     async execute(interaction: CommandInteraction) {
         if (interaction.options.getSubcommand() === "play") {
@@ -85,9 +94,11 @@ module.exports = {
             }
 
             // If input is not a link
-            await interaction.reply("Adding songs to queue");
             if (!await player.addSongsFromUrl(input)) {
-                await interaction.followUp("Not a link!");
+                await interaction.reply("Not a link!");
+            }
+            else {
+                await interaction.reply("Adding songs to queue");
             }
             await player.playQueue((song) => {
                 interaction.followUp({
@@ -100,6 +111,12 @@ module.exports = {
             const p = nagPlayer.getInstance((interaction.member as GuildMember)
                 .voice.channel as VoiceChannel);
             p?.skipMusic();
+        }
+        else if (interaction.options.getSubcommand() === "stop") {
+            interaction.reply("Stopping player");
+            const p = nagPlayer.getInstance((interaction.member as GuildMember)
+                .voice.channel as VoiceChannel);
+            p?.leaveChannel();
         }
     },
 };

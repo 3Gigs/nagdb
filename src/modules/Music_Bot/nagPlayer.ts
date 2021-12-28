@@ -5,6 +5,7 @@ import {
     createAudioPlayer,
     createAudioResource,
     DiscordGatewayAdapterCreator,
+    getVoiceConnection,
     joinVoiceChannel,
     NoSubscriberBehavior,
     PlayerSubscription,
@@ -13,8 +14,9 @@ import {
 import { VoiceChannel } from "discord.js";
 import { easyLinkedList } from "easylinkedlist";
 import { playlist_info,
-    stream, video_basic_info, YouTubeChannel,
-    yt_validate } from "play-dl";
+    search,
+    stream, video_basic_info,
+    validate, Song } from "nagdl";
 
 /**
  * **Discord voice channel bot music player implementation**
@@ -24,12 +26,13 @@ import { playlist_info,
  */
 export class nagPlayer {
     private static voiceConnections = new Map<VoiceChannel, nagPlayer>();
-    private connection: VoiceConnection | undefined;
+    private vc: VoiceChannel;
     private subscription : PlayerSubscription | undefined;
     private playerMusic : AudioPlayer | undefined;
     private playingAll : boolean;
-    private stopPlayer : boolean;
-    private queue : easyLinkedList<nagVideo>;
+    private pausePlayer : boolean;
+    private _nowPlaying: Song | undefined;
+    private queue : easyLinkedList<Song>;
 
     /**
      * Creates an instance of nagPlayer with a specified VoiceChannel
@@ -37,12 +40,17 @@ export class nagPlayer {
      * @memberof nagPlayer
      */
     public constructor(vc : VoiceChannel) {
-        this.connection = this.joinChannel(vc)?.connection;
+        this.vc = vc;
         this.subscription = undefined;
         this.playerMusic = undefined;
         this.queue = new easyLinkedList();
         this.playingAll = false;
-        this.stopPlayer = false;
+        this.pausePlayer = false;
+        this.joinChannel(vc);
+    }
+
+    get nowPlaying(): Song | undefined {
+        return this.nowPlaying;
     }
 
     /**
@@ -57,7 +65,7 @@ export class nagPlayer {
             return nagPlayer.voiceConnections.get(vc);
         }
         else {
-            this.connection = joinVoiceChannel({
+            joinVoiceChannel({
                 channelId: vc.id,
                 guildId: vc.guild.id,
                 adapterCreator: vc.guild
@@ -68,7 +76,7 @@ export class nagPlayer {
         }
     }
     public getConnection(): VoiceConnection | undefined {
-        return this.connection;
+        return getVoiceConnection(this.vc.guild.id);
     }
 
     /**
@@ -106,10 +114,11 @@ export class nagPlayer {
      * @memberof nagPlayer
      */
     public leaveChannel(): nagPlayer {
-        this.connection?.destroy;
+        this.getConnection()?.destroy();
+        nagPlayer.voiceConnections.delete(this.vc);
+        console.log(nagPlayer.getInstance(this.vc));
         return this;
     }
-
 
     /**
      * Plays the specified audio resource
@@ -126,48 +135,46 @@ export class nagPlayer {
             });
         }
         if (!this.subscription) {
-            this.subscription = this.connection?.subscribe(this.playerMusic);
+            this.subscription = this.getConnection()
+                ?.subscribe(this.playerMusic);
         }
         this.playerMusic.play(resource);
-
     }
-
-    get willPlayAll(): boolean {
-        return this.playingAll;
-    }
-
-    set willPlayAll(b : boolean) {
-        this.playingAll = b;
-    }
-
 
     /**
      * Plays all music from queue, with optional callback function for
      * displaying current song playing
+     * @example
+     * ```js
+     * player.playQueue((song) => {
+     *     interaction.followup("Now playing: " + song.title);
+     * });
+     * ```
      *
      * @param func - Executes every time a new song will be played
      * @memberof nagPlayer
      */
-    public async playQueue(func? : (song: nagVideo) => void) : Promise<void> {
-        if (this.willPlayAll) {
+    public async playQueue(func? : (song: Song) => void) : Promise<void> {
+        if (this.playingAll) {
             return;
         }
         const p = async () => {
             const song = this.queue.shift();
-            if (song && !this.stopPlayer) {
-                this.willPlayAll = true;
+            if (song && !this.pausePlayer) {
+                this.playingAll = true;
                 if (func) {
                     func(song);
                 }
-                const s = await stream(song.streamUrl);
+                const s = await stream(song.url);
                 this.playSong(createAudioResource(s.stream, {
                     inputType: s.type,
                 }));
             }
             else {
-                this.stopPlayer = false;
+                this.pausePlayer = false;
                 this.playingAll = false;
                 this.subscription?.unsubscribe();
+                this.subscription = undefined;
                 this.playerMusic?.removeListener(AudioPlayerStatus.Idle, p);
                 this.playerMusic = undefined;
             }
@@ -177,6 +184,7 @@ export class nagPlayer {
         this.playerMusic?.on(AudioPlayerStatus.Idle, async () => {
             p();
         });
+        this.playerMusic?.on("error", p);
     }
 
     /**
@@ -187,32 +195,22 @@ export class nagPlayer {
      * @memberof nagPlayer
      */
     async addSongsFromUrl(request : string): Promise<boolean> {
-        if (yt_validate(request) == "playlist") {
+        const reqType = await validate(request);
+        if (!reqType) {
+            return false;
+        }
+        if (reqType == "yt_playlist") {
             const pl = await playlist_info(request);
             await pl.fetch();
             for (let i = 1; i <= pl.total_pages; i++) {
-                pl.page(i).forEach((s) => {
-                    this.queue.push({
-                        streamUrl: s.url,
-                        thumbnailUrl: s.thumbnails[0].url,
-                        title: s.title as string,
-                        channel: (s.channel as YouTubeChannel).name as string,
-                        duration: s.durationRaw,
-                    });
-                });
+                this.queue.push(...pl.page(i));
             }
 
             return true;
         }
-        if (yt_validate(request) == "video") {
+        if (reqType == "yt_video") {
             const vid = (await video_basic_info(request)).video_details;
-            this.queue.push({
-                streamUrl: vid.url,
-                thumbnailUrl: vid.thumbnails[0].url,
-                title: vid.title as string,
-                channel: (vid.channel as YouTubeChannel).name as string,
-                duration: vid.durationRaw,
-            });
+            this.queue.push(vid);
             return true;
         }
         return false;
@@ -225,12 +223,13 @@ export class nagPlayer {
         // signals the playAll event listener to play the next song
         this.playerMusic?.stop();
     }
-}
 
-export interface nagVideo {
-    streamUrl: string;
-    thumbnailUrl: string;
-    title: string;
-    channel: string;
-    duration : string;
+    /**
+     * Querys songs from the YouTubes
+     * @param query - the search query
+     * @return Array of videos found
+     */
+    public static async querySongs(query : string): Promise<Array<Song>> {
+        return await search(query, { source: { youtube: "video" } });
+    }
 }
