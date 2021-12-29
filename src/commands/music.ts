@@ -5,6 +5,7 @@ import {
     CommandInteraction,
     GuildMember,
     MessageEmbed,
+    StageChannel,
     VoiceChannel,
 } from "discord.js";
 import { nagPlayer } from "../modules/Music_Bot/nagPlayer";
@@ -72,18 +73,14 @@ module.exports = {
                 .setDescription("Stops music player and disconnect from " +
                     "voice channel")),
     async execute(interaction: CommandInteraction) {
-        const vc = (interaction.member as GuildMember)
-            .voice.channel as VoiceChannel;
-        let player;
-        if (nagPlayer.hasInstance(vc)) {
-            player = nagPlayer.getInstance(vc);
-        }
-        else {
-            player = new nagPlayer(vc);
-        }
-        if (!player) {
-            interaction.reply("You're not in a voice channel!");
+        const vc = (interaction.member as GuildMember).voice.channel;
+        if (!(vc instanceof VoiceChannel)) {
+            interaction.reply("You're not in a valid voice channel!");
             return;
+        }
+        let player = nagPlayer.getInstance(vc);
+        if (!player) {
+            player = new nagPlayer(vc);
         }
 
         if (interaction.options.getSubcommand() === "play") {
@@ -100,23 +97,15 @@ module.exports = {
             else {
                 await interaction.reply("Adding songs to queue");
             }
-            await player.playQueue((song) => {
-                interaction.followUp({
-                    embeds: [nowPlayingEmbedCreator(song)],
-                });
-            });
+            await player.playQueue();
         }
         else if (interaction.options.getSubcommand() === "skip") {
             interaction.reply("Skipping song...");
-            const p = nagPlayer.getInstance((interaction.member as GuildMember)
-                .voice.channel as VoiceChannel);
-            p?.skipMusic();
+            player.skipMusic();
         }
         else if (interaction.options.getSubcommand() === "stop") {
             interaction.reply("Stopping player");
-            const p = nagPlayer.getInstance((interaction.member as GuildMember)
-                .voice.channel as VoiceChannel);
-            p?.leaveChannel();
+            player.leaveChannel();
         }
     },
 };

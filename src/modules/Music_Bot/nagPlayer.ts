@@ -29,7 +29,7 @@ export class nagPlayer {
     private vc: VoiceChannel;
     private subscription : PlayerSubscription | undefined;
     private playerMusic : AudioPlayer | undefined;
-    private playingAll : boolean;
+    private playingQueue : boolean;
     private pausePlayer : boolean;
     private _nowPlaying: Song | undefined;
     private queue : easyLinkedList<Song>;
@@ -44,13 +44,21 @@ export class nagPlayer {
         this.subscription = undefined;
         this.playerMusic = undefined;
         this.queue = new easyLinkedList();
-        this.playingAll = false;
+        this.playingQueue = false;
         this.pausePlayer = false;
         this.joinChannel(vc);
     }
 
     get nowPlaying(): Song | undefined {
         return this.nowPlaying;
+    }
+
+    get isPlayingQueue(): boolean {
+        return this.playingQueue;
+    }
+
+    get isEmptyQueue(): boolean {
+        return this.queue.isEmpty();
     }
 
     /**
@@ -158,14 +166,14 @@ export class nagPlayer {
      * @memberof nagPlayer
      */
     public async playQueue(func? : (song: Song) => void) : Promise<void> {
-        if (this.playingAll) {
+        if (this.playingQueue) {
             return;
         }
         const p = async () => {
             const song = this.queue.shift();
             this._nowPlaying = song;
             if (song && !this.pausePlayer) {
-                this.playingAll = true;
+                this.playingQueue = true;
                 if (func) {
                     func(song);
                 }
@@ -176,7 +184,7 @@ export class nagPlayer {
             }
             else {
                 this.pausePlayer = false;
-                this.playingAll = false;
+                this.playingQueue = false;
                 this.subscription?.unsubscribe();
                 this.subscription = undefined;
                 this.playerMusic?.removeListener(AudioPlayerStatus.Idle, p);
@@ -223,7 +231,7 @@ export class nagPlayer {
         return false;
     }
     public skipMusic(): void {
-        if (!this.playingAll) {
+        if (!this.playingQueue) {
             return;
         }
         // Destroys current audio resource, then sets the player to idle, which
