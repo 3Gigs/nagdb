@@ -182,9 +182,13 @@ export class nagPlayer {
 
         await p();
         this.playerMusic?.on(AudioPlayerStatus.Idle, async () => {
+            console.log("xd");
             p();
         });
-        this.playerMusic?.on("error", p);
+        this.playerMusic?.on("error", (e) => {
+            console.warn(e);
+            p();
+        });
     }
 
     /**

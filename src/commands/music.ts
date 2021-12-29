@@ -34,8 +34,7 @@ export const nowPlayingEmbedCreator =
                 embed.setThumbnail(video.thumbnailUrl);
             }
             embed.addFields({
-                name: "Duration", value: video
-                    .duration.durationFormatted,
+                name: "Duration", value: video.duration.durationFormatted,
             });
 
 

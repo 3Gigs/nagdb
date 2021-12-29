@@ -35,7 +35,7 @@
     "easylinkedlist": "^1.2.0",
     "ffmpeg-static": "^4.4.0",
     "libsodium-wrappers": "^0.7.9",
-    "nagdl": "^1.0.3",
+    "nagdl": "^1.0.8",
     "play-dl": "^1.6.2",
     "sodium": "^3.0.2",
     "winston": "^3.3.3",
