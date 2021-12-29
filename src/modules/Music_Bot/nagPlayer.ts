@@ -12,7 +12,6 @@ import {
     VoiceConnection,
 } from "@discordjs/voice";
 import { VoiceChannel } from "discord.js";
-import { easyLinkedList } from "easylinkedlist";
 import { playlist_info,
     search,
     stream, video_basic_info,
@@ -29,10 +28,10 @@ export class nagPlayer {
     private vc: VoiceChannel;
     private subscription : PlayerSubscription | undefined;
     private playerMusic : AudioPlayer | undefined;
-    private playingAll : boolean;
+    private playingQueue : boolean;
     private pausePlayer : boolean;
     private _nowPlaying: Song | undefined;
-    private queue : easyLinkedList<Song>;
+    private _queue : Array<Song>;
 
     /**
      * Creates an instance of nagPlayer with a specified VoiceChannel
@@ -43,14 +42,29 @@ export class nagPlayer {
         this.vc = vc;
         this.subscription = undefined;
         this.playerMusic = undefined;
-        this.queue = new easyLinkedList();
-        this.playingAll = false;
+        this._queue = [];
+        this.playingQueue = false;
         this.pausePlayer = false;
         this.joinChannel(vc);
     }
 
     get nowPlaying(): Song | undefined {
-        return this.nowPlaying;
+        return this._nowPlaying;
+    }
+
+    /**
+     * @returns True if bot is attempting to play all of queue
+     */
+    get isPlayingQueue(): boolean {
+        return this.playingQueue;
+    }
+
+    get queue(): Array<Song> {
+        return this._queue;
+    }
+
+    get connection(): VoiceConnection | undefined {
+        return getVoiceConnection(this.vc.guild.id);
     }
 
     /**
@@ -60,7 +74,7 @@ export class nagPlayer {
      * @return {*}  {(nagPlayer)}
      * @memberof nagPlayer
      */
-    public joinChannel(vc : VoiceChannel): nagPlayer | undefined {
+    private joinChannel(vc : VoiceChannel): nagPlayer | undefined {
         if (nagPlayer.voiceConnections.has(vc)) {
             return nagPlayer.voiceConnections.get(vc);
         }
@@ -75,8 +89,13 @@ export class nagPlayer {
             return this;
         }
     }
-    public getConnection(): VoiceConnection | undefined {
-        return getVoiceConnection(this.vc.guild.id);
+
+    public getQueuePaginated(page: number, page_size: number)
+    : Array<Song> | undefined {
+        if (page > (this.queue.length / page_size)) {
+            return undefined;
+        }
+        return this.queue.slice((page - 1) * page_size, page * page_size);
     }
 
     /**
@@ -114,7 +133,7 @@ export class nagPlayer {
      * @memberof nagPlayer
      */
     public leaveChannel(): nagPlayer {
-        this.getConnection()?.destroy();
+        this.connection?.destroy();
         nagPlayer.voiceConnections.delete(this.vc);
         console.log(nagPlayer.getInstance(this.vc));
         return this;
@@ -135,8 +154,7 @@ export class nagPlayer {
             });
         }
         if (!this.subscription) {
-            this.subscription = this.getConnection()
-                ?.subscribe(this.playerMusic);
+            this.subscription = this.connection?.subscribe(this.playerMusic);
         }
         this.playerMusic.play(resource);
     }
@@ -158,13 +176,14 @@ export class nagPlayer {
      * @memberof nagPlayer
      */
     public async playQueue(func? : (song: Song) => void) : Promise<void> {
-        if (this.playingAll) {
+        if (this.playingQueue) {
             return;
         }
         const p = async () => {
-            const song = this.queue.shift();
+            const song = this._queue.shift();
+            this._nowPlaying = song;
             if (song && !this.pausePlayer) {
-                this.playingAll = true;
+                this.playingQueue = true;
                 if (func) {
                     func(song);
                 }
@@ -175,7 +194,7 @@ export class nagPlayer {
             }
             else {
                 this.pausePlayer = false;
-                this.playingAll = false;
+                this.playingQueue = false;
                 this.subscription?.unsubscribe();
                 this.subscription = undefined;
                 this.playerMusic?.removeListener(AudioPlayerStatus.Idle, p);
@@ -209,20 +228,20 @@ export class nagPlayer {
             const pl = await playlist_info(request);
             await pl.fetch();
             for (let i = 1; i <= pl.total_pages; i++) {
-                this.queue.push(...pl.page(i));
+                this._queue.push(...pl.page(i));
             }
 
             return true;
         }
         if (reqType == "yt_video") {
             const vid = (await video_basic_info(request)).video_details;
-            this.queue.push(vid);
+            this._queue.push(vid);
             return true;
         }
         return false;
     }
     public skipMusic(): void {
-        if (!this.playingAll) {
+        if (!this.playingQueue) {
             return;
         }
         // Destroys current audio resource, then sets the player to idle, which

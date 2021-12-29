@@ -10,6 +10,7 @@ import {
 import { nagPlayer } from "../modules/Music_Bot/nagPlayer";
 import { Song } from "nagdl";
 
+const PAGE_SIZE = 10;
 /**
  * Re-usable function for making a now playing display
  *
@@ -19,7 +20,7 @@ export const nowPlayingEmbedCreator =
     (video: Song): MessageEmbed => {
         if (video) {
             const embed = new MessageEmbed();
-            embed.setColor("AQUA")
+            embed.setColor("GREEN")
                 .setTitle("🎧 Now Playing!");
             if (video.albumName) {
                 embed.addFields({ name: "Album", value: video.albumName });
@@ -61,7 +62,22 @@ module.exports = {
                 .addStringOption(option =>
                     option
                         .setName("input")
+                        .setRequired(true)
                         .setDescription("A YouTube link or search query")))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName("nowplaying")
+                .setDescription("View currently playing song"))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName("queue")
+                .setDescription("The music bot's queue")
+                .addIntegerOption(option =>
+                    option
+                        .setName("page")
+                        .setDescription(`Gets ${PAGE_SIZE} songs from the 
+                        queue, starting at the page number - 1`)
+                        .setRequired(true)))
         .addSubcommand(subcommand =>
             subcommand
                 .setName("skip")
@@ -72,26 +88,22 @@ module.exports = {
                 .setDescription("Stops music player and disconnect from " +
                     "voice channel")),
     async execute(interaction: CommandInteraction) {
+        const vc = (interaction.member as GuildMember).voice.channel;
+        if (!(vc instanceof VoiceChannel)) {
+            await interaction.reply("You're not in a valid voice channel!");
+            return;
+        }
+        let player = nagPlayer.getInstance(vc);
+        if (!player) {
+            player = new nagPlayer(vc);
+        }
+
         if (interaction.options.getSubcommand() === "play") {
-            const vc = (interaction.member as GuildMember)
-                .voice.channel as VoiceChannel;
-            let player;
-            if (nagPlayer.hasInstance(vc)) {
-                player = nagPlayer.getInstance(vc);
-            }
-            else {
-                player = new nagPlayer(vc);
-            }
-            if (!player) {
-                interaction.reply("You're not in a voice channel!");
-                return;
-            }
             const input = interaction.options.getString("input");
             if (!input) {
                 await interaction.reply("No input found!");
                 return;
             }
-
             // If input is not a link
             if (!await player.addSongsFromUrl(input)) {
                 await interaction.reply("Not a link!");
@@ -99,23 +111,50 @@ module.exports = {
             else {
                 await interaction.reply("Adding songs to queue");
             }
-            await player.playQueue((song) => {
-                interaction.followUp({
-                    embeds: [nowPlayingEmbedCreator(song)],
-                });
-            });
+            await player.playQueue();
+        }
+        else if (interaction.options.getSubcommand() === "nowplaying") {
+            if (!player.nowPlaying) {
+                await interaction.reply("No songs playing!");
+                return;
+            }
+            interaction.reply({ embeds:
+                [nowPlayingEmbedCreator(player.nowPlaying)] });
         }
         else if (interaction.options.getSubcommand() === "skip") {
-            interaction.reply("Skipping song...");
-            const p = nagPlayer.getInstance((interaction.member as GuildMember)
-                .voice.channel as VoiceChannel);
-            p?.skipMusic();
+            if (!player.queue.length) {
+                await interaction.reply("Queue is empty!");
+                return;
+            }
+            await interaction.reply("Skipping song...");
+            player.skipMusic();
         }
         else if (interaction.options.getSubcommand() === "stop") {
-            interaction.reply("Stopping player");
-            const p = nagPlayer.getInstance((interaction.member as GuildMember)
-                .voice.channel as VoiceChannel);
-            p?.leaveChannel();
+            await interaction.reply("Stopping player");
+            player.leaveChannel();
+        }
+        else if (interaction.options.getSubcommand() === "queue") {
+            const page = interaction.options.getInteger("page");
+            if (!page) {
+                console.warn("Page passed was null!");
+                return;
+            }
+            const songList = player.getQueuePaginated(page, PAGE_SIZE);
+            if (!songList) {
+                interaction.reply({ embeds: [new MessageEmbed()
+                    .setTitle("❌ Invalid page number")] });
+                return;
+            }
+            const queueEmbed = new MessageEmbed()
+                .setTitle("Queue (Page " + page + " of "
+                    + Math.floor((player.queue.length / PAGE_SIZE)) + ")")
+                .setColor("AQUA");
+            for (const song of player.queue) {
+                queueEmbed.addField(song.title, song.author);
+            }
+            interaction.reply({ embeds: [queueEmbed] });
+
+            return;
         }
     },
 };
