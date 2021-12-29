@@ -163,6 +163,7 @@ export class nagPlayer {
         }
         const p = async () => {
             const song = this.queue.shift();
+            this._nowPlaying = song;
             if (song && !this.pausePlayer) {
                 this.playingAll = true;
                 if (func) {

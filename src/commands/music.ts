@@ -72,20 +72,21 @@ module.exports = {
                 .setDescription("Stops music player and disconnect from " +
                     "voice channel")),
     async execute(interaction: CommandInteraction) {
+        const vc = (interaction.member as GuildMember)
+            .voice.channel as VoiceChannel;
+        let player;
+        if (nagPlayer.hasInstance(vc)) {
+            player = nagPlayer.getInstance(vc);
+        }
+        else {
+            player = new nagPlayer(vc);
+        }
+        if (!player) {
+            interaction.reply("You're not in a voice channel!");
+            return;
+        }
+
         if (interaction.options.getSubcommand() === "play") {
-            const vc = (interaction.member as GuildMember)
-                .voice.channel as VoiceChannel;
-            let player;
-            if (nagPlayer.hasInstance(vc)) {
-                player = nagPlayer.getInstance(vc);
-            }
-            else {
-                player = new nagPlayer(vc);
-            }
-            if (!player) {
-                interaction.reply("You're not in a voice channel!");
-                return;
-            }
             const input = interaction.options.getString("input");
             if (!input) {
                 await interaction.reply("No input found!");
