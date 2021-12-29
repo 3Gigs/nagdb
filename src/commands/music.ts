@@ -5,12 +5,12 @@ import {
     CommandInteraction,
     GuildMember,
     MessageEmbed,
-    StageChannel,
     VoiceChannel,
 } from "discord.js";
 import { nagPlayer } from "../modules/Music_Bot/nagPlayer";
 import { Song } from "nagdl";
 
+const PAGE_SIZE = 10;
 /**
  * Re-usable function for making a now playing display
  *
@@ -20,7 +20,7 @@ export const nowPlayingEmbedCreator =
     (video: Song): MessageEmbed => {
         if (video) {
             const embed = new MessageEmbed();
-            embed.setColor("AQUA")
+            embed.setColor("GREEN")
                 .setTitle("🎧 Now Playing!");
             if (video.albumName) {
                 embed.addFields({ name: "Album", value: video.albumName });
@@ -62,7 +62,22 @@ module.exports = {
                 .addStringOption(option =>
                     option
                         .setName("input")
+                        .setRequired(true)
                         .setDescription("A YouTube link or search query")))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName("nowplaying")
+                .setDescription("View currently playing song"))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName("queue")
+                .setDescription("The music bot's queue")
+                .addIntegerOption(option =>
+                    option
+                        .setName("page")
+                        .setDescription(`Gets ${PAGE_SIZE} songs from the 
+                        queue, starting at the page number - 1`)
+                        .setRequired(true)))
         .addSubcommand(subcommand =>
             subcommand
                 .setName("skip")
@@ -75,7 +90,7 @@ module.exports = {
     async execute(interaction: CommandInteraction) {
         const vc = (interaction.member as GuildMember).voice.channel;
         if (!(vc instanceof VoiceChannel)) {
-            interaction.reply("You're not in a valid voice channel!");
+            await interaction.reply("You're not in a valid voice channel!");
             return;
         }
         let player = nagPlayer.getInstance(vc);
@@ -89,7 +104,6 @@ module.exports = {
                 await interaction.reply("No input found!");
                 return;
             }
-
             // If input is not a link
             if (!await player.addSongsFromUrl(input)) {
                 await interaction.reply("Not a link!");
@@ -99,13 +113,48 @@ module.exports = {
             }
             await player.playQueue();
         }
+        else if (interaction.options.getSubcommand() === "nowplaying") {
+            if (!player.nowPlaying) {
+                await interaction.reply("No songs playing!");
+                return;
+            }
+            interaction.reply({ embeds:
+                [nowPlayingEmbedCreator(player.nowPlaying)] });
+        }
         else if (interaction.options.getSubcommand() === "skip") {
-            interaction.reply("Skipping song...");
+            if (!player.queue.length) {
+                await interaction.reply("Queue is empty!");
+                return;
+            }
+            await interaction.reply("Skipping song...");
             player.skipMusic();
         }
         else if (interaction.options.getSubcommand() === "stop") {
-            interaction.reply("Stopping player");
+            await interaction.reply("Stopping player");
             player.leaveChannel();
+        }
+        else if (interaction.options.getSubcommand() === "queue") {
+            const page = interaction.options.getInteger("page");
+            if (!page) {
+                console.warn("Page passed was null!");
+                return;
+            }
+            const songList = player.getQueuePaginated(page, PAGE_SIZE);
+            if (!songList) {
+                interaction.reply({ embeds: [new MessageEmbed()
+                    .setTitle("❌ Invalid page number")] });
+                return;
+            }
+            const queueEmbed = new MessageEmbed()
+                .setTitle("Queue (Page " + page + " of "
+                    + Math.floor((player.queue.length / PAGE_SIZE)) + ")")
+                .setColor("AQUA");
+            for (const song of player.queue) {
+                queueEmbed.addField(song.title, song.author);
+            }
+            interaction.reply({ embeds: [queueEmbed] });
+
+            return;
         }
     },
 };
