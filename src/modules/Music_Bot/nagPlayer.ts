@@ -150,6 +150,9 @@ export class nagPlayer {
      *     interaction.followup("Now playing: " + song.title);
      * });
      * ```
+     * @remarks
+     * Note that the above example only works if the queue is shorter than 15
+     * minutes, otherwise the interaction will expire
      *
      * @param func - Executes every time a new song will be played
      * @memberof nagPlayer
@@ -182,7 +185,6 @@ export class nagPlayer {
 
         await p();
         this.playerMusic?.on(AudioPlayerStatus.Idle, async () => {
-            console.log("xd");
             p();
         });
         this.playerMusic?.on("error", (e) => {
