@@ -66,7 +66,6 @@ export class nagPlayer {
     get connection(): VoiceConnection | undefined {
         return getVoiceConnection(this.vc.guild.id);
     }
-
     /**
      * Joins a voice channel. If a connection was already made, it will return
      * the instance from voiceConnections
@@ -224,21 +223,24 @@ export class nagPlayer {
         if (!reqType) {
             return false;
         }
-        if (reqType == "yt_playlist") {
-            const pl = await playlist_info(request);
-            await pl.fetch();
-            for (let i = 1; i <= pl.total_pages; i++) {
-                this._queue.push(...pl.page(i));
-            }
-
-            return true;
-        }
-        if (reqType == "yt_video") {
-            const vid = (await video_basic_info(request)).video_details;
-            this._queue.push(vid);
-            return true;
-        }
-        return false;
+	switch(reqType) {
+	    case "yt_playlist": {
+		const pl = await playlist_info(request);
+		await pl.fetch();
+		for (let i = 1; i <= pl.total_pages; i++) {
+		    this._queue.push(...pl.page(i));
+		}
+		return true;
+	    }
+  	    case "yt_video": {
+		const vid = (await video_basic_info(request)).video_details;
+		this._queue.push(vid);
+		return true;
+	    }
+	    default: {
+		return false;
+	    }
+	}
     }
     public skipMusic(): void {
         if (!this.playingQueue) {
