@@ -255,16 +255,25 @@ export class nagPlayer {
 		const spData = await spotify(request);
 		if(spData instanceof SpotifyAlbum) {
 		    await spData.fetch();
-		    for(let i = 0; i < spData.total_pages; i++) {
-			const tracks: Song[] | undefined = spData.page(i);
+		    for(let i = 1; i <= spData.total_pages; i++) {
+			console.log(spData.total_pages)
+			const tracks: Song[] | undefined = spData.page(1);
 			if(tracks) {
-			    tracks.map(async t => {
-				t = (await search(`${t.title} ${t.author}`, {limit: 1}))[0]
-			    })
-			    this._queue.push(...tracks);
+			    const yttracks = await Promise.all(tracks.map(async t => {
+				try {
+				    t = (await search(`${t.title} ${t.author}`, {limit: 1}))[0]
+				    return t;
+				}
+				catch(err) {
+				    throw err;
+				}
+			    }))
+			    this._queue.push(...yttracks);
 			}
 		    }
+		    return true;
 		}
+		return false;
 	    }
 	    default: {
 		return false;
