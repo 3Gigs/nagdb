@@ -13,9 +13,14 @@ import {
 } from "@discordjs/voice";
 import { VoiceChannel } from "discord.js";
 import { playlist_info,
-    search,
-    stream, video_basic_info,
-    validate, Song } from "nagdl";
+	 search,
+	 stream,
+	 video_basic_info,
+	 validate,
+	 Song,
+	 spotify,
+	 SpotifyTrack, 
+     SpotifyAlbum} from "nagdl";
 
 /**
  * **Discord voice channel bot music player implementation**
@@ -212,7 +217,7 @@ export class nagPlayer {
     }
 
     /**
-     * Checks if input is a link, and adds the songs to queue if it's a link
+     * Checks if input is a link, and adds the tracks to queue if it's a link
      *
      * @param request - The input
      * @return true if song(s) were added to queue, false otherwise
@@ -237,6 +242,30 @@ export class nagPlayer {
 		this._queue.push(vid);
 		return true;
 	    }
+	    case "sp_track": {
+		const spData = await spotify(request);
+		if(spData instanceof SpotifyTrack) {
+		    const song = await search(`${spData.name} ${spData.author}`, {limit: 1});
+		    this._queue.push(song[0]);
+		    return true;
+		}
+		return false;
+	    }
+	    case "sp_album": {
+		const spData = await spotify(request);
+		if(spData instanceof SpotifyAlbum) {
+		    await spData.fetch();
+		    for(let i = 0; i < spData.total_pages; i++) {
+			const tracks: Song[] | undefined = spData.page(i);
+			if(tracks) {
+			    tracks.map(async t => {
+				t = (await search(`${t.title} ${t.author}`, {limit: 1}))[0]
+			    })
+			    this._queue.push(...tracks);
+			}
+		    }
+		}
+	    }
 	    default: {
 		return false;
 	    }
@@ -252,11 +281,11 @@ export class nagPlayer {
     }
 
     /**
-     * Querys songs from the YouTubes
+     * Querys tracks from the YouTubes
      * @param query - the search query
      * @return Array of videos found
      */
-    public static async querySongs(query : string): Promise<Array<Song>> {
+    public static async queryTracks(query : string): Promise<Array<Song>> {
         return await search(query, { source: { youtube: "video" } });
     }
 }
