@@ -21,7 +21,9 @@ import { playlist_info,
 	 spotify,
 	 SpotifyTrack,
 	 SpotifyPlaylist,
-	 SpotifyAlbum} from "nagdl";
+	 SpotifyAlbum,
+         refreshToken,
+         is_expired } from "nagdl";
 
 /**
  * **Discord voice channel bot music player implementation**
@@ -251,6 +253,9 @@ export class nagPlayer {
 		return true;
 	    }
 	    case "sp_track": {
+		// Refresh token if needed
+		if(is_expired())
+		    refreshToken();
 		const spData = await spotify(request);
 		if(spData instanceof SpotifyTrack) {
 		    const title = spData.title ? spData.title : "Untitled Track";
@@ -264,6 +269,9 @@ export class nagPlayer {
 	    }
 	    case "sp_playlist":
 	    case "sp_album": 
+		// Refresh token if needed
+		if(is_expired())
+		    refreshToken();
 		const spData = await spotify(request);
 		if(spData instanceof SpotifyAlbum || spData instanceof SpotifyPlaylist) {
 		    await spData.fetch();
