@@ -267,10 +267,12 @@ export class nagPlayer {
 				    const title = t.title ? t.title : "Untitled Track";
 				    const author = t.author ? t.author : "Unknown author";
 				    const album = t.albumName ? t.albumName : "No album";
-				    const link = (await search(`${title} ${author}`, {limit: 1}))[0].url;
-				    const song: Song = {url: link, albumName: album, title: title, author}
-				    this._queue.push(song);
-				    return t;
+				    const result: string | undefined = (await search(`${title} ${author}`, {limit: 1}))[0]?.url
+				    if(result) {
+					const song: Song = {url: result, albumName: album, title: title, author}
+					this._queue.push(song);
+					return t;
+				    }
 				}
 				catch(err) {
 				    throw err;

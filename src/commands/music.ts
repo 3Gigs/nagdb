@@ -152,7 +152,7 @@ module.exports = {
                 .setTitle("Queue (Page " + page + " of "
                     + Math.ceil((player.queue.length / PAGE_SIZE)) + ")")
                 .setColor("AQUA");
-            for (const song of player.queue) {
+            for (const song of songList) {
 		const title = song.title ? song.title : "Untitled Track";
 		const author = song.author ? song.author : "No author";
                 queueEmbed.addField(title, author);
