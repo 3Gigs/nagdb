@@ -1,7 +1,9 @@
 import { Client, Intents } from "discord.js";
 import { token } from "../config.json";
 import { commandHandler } from "./commandHandler";
-import { is_expired, refreshToken } from "nagdl"
+import { is_expired, refreshToken, authorization } from "nagdl"
+import { readFileSync } from "fs"
+import { createInterface } from "readline"
 
 // Create a new client instance
 const client = new Client({ intents: [Intents.FLAGS.GUILDS,
@@ -15,12 +17,25 @@ client.once("ready", () => {
 
 // Login to Discord with your client's token
 client.login(token);
+console.log("Sucessfully logged in!");
+
 
 (async () => {
-    if(is_expired()) {
-	await refreshToken(); 
+    try {
+	readFileSync(".data/spotify.data");
+	if(is_expired()) 
+	    refreshToken();
+    } catch(e) {
+	const rl = createInterface({
+	    input: process.stdin,
+	    output: process.stdout
+	});
+	rl.question("Do you want to create a spotify token? (Required for playing spotify) <yes / no>\n", (p) => {
+	    if(p === "yes") {
+		authorization();
+	    }
+	});
     }
 })();
 
-console.log("Sucessfully logged in!");
 
