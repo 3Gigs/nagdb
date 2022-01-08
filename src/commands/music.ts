@@ -109,7 +109,7 @@ module.exports = {
 	    interaction.deferReply();
             // If input is not a link
             if (!await player.addSongsFromUrl(input)) {
-                await interaction.reply("Not a link!");
+                await interaction.followUp("Not a link!");
             }
             else {
                 await interaction.followUp("Added songs to queue");
