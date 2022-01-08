@@ -78,7 +78,7 @@ module.exports = {
                     option
                         .setName("page")
                         .setDescription(`Gets ${PAGE_SIZE} songs from the 
-                        queue, starting at the page number - 1`)
+                        queue, starting at the page number 1`)
                         .setRequired(true)))
         .addSubcommand(subcommand =>
             subcommand
