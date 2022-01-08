@@ -95,6 +95,14 @@ export class nagPlayer {
         }
     }
 
+    /**
+     * Gives a portion a portion of the queue, based on given page size and page number
+     * @param page - The page number 
+     * @param page_size - The page size, used to paginate the queue
+     *
+     * @returns An array of Songs on given page
+     *
+    */
     public getQueuePaginated(page: number, page_size: number)
     : Array<Song> | undefined {
         if (page > Math.ceil(this.queue.length / page_size)) {
