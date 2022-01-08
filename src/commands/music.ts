@@ -106,12 +106,13 @@ module.exports = {
                 await interaction.reply("No input found!");
                 return;
             }
+	    interaction.deferReply();
             // If input is not a link
             if (!await player.addSongsFromUrl(input)) {
                 await interaction.reply("Not a link!");
             }
             else {
-                await interaction.reply("Adding songs to queue");
+                await interaction.followUp("Added songs to queue");
             }
             await player.playQueue();
         }
