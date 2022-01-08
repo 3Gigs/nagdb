@@ -19,8 +19,9 @@ import { playlist_info,
 	 validate,
 	 Song,
 	 spotify,
-	 SpotifyTrack, 
-     SpotifyAlbum} from "nagdl";
+	 SpotifyTrack,
+	 SpotifyPlaylist,
+	 SpotifyAlbum} from "nagdl";
 
 /**
  * **Discord voice channel bot music player implementation**
@@ -252,12 +253,12 @@ export class nagPlayer {
 		}
 		return false;
 	    }
-	    case "sp_album": {
+	    case "sp_playlist":
+	    case "sp_album": 
 		const spData = await spotify(request);
-		if(spData instanceof SpotifyAlbum) {
+		if(spData instanceof SpotifyAlbum || spData instanceof SpotifyPlaylist) {
 		    await spData.fetch();
 		    for(let i = 1; i <= spData.total_pages; i++) {
-			console.log(spData.total_pages)
 			const tracks: Song[] | undefined = spData.page(i);
 			if(tracks) {
 			    await Promise.all(tracks.map(async t => {
@@ -279,7 +280,6 @@ export class nagPlayer {
 		    return true;
 		}
 		return false;
-	    }
 	    default: {
 		return false;
 	    }
