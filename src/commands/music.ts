@@ -34,10 +34,12 @@ export const nowPlayingEmbedCreator =
             if (video.thumbnailUrl) {
                 embed.setThumbnail(video.thumbnailUrl);
             }
-            embed.addFields({
-                name: "Duration", value: video.duration.durationFormatted,
-            });
-
+	    if(video.duration) {
+		embed.addFields({
+		    name: "Duration",
+		    value: video.duration.durationFormatted,
+		})
+	    };
 
             embed.setURL(video.url);
             return embed;
@@ -147,10 +149,12 @@ module.exports = {
             }
             const queueEmbed = new MessageEmbed()
                 .setTitle("Queue (Page " + page + " of "
-                    + Math.floor((player.queue.length / PAGE_SIZE)) + ")")
+                    + Math.ceil((player.queue.length / PAGE_SIZE)) + ")")
                 .setColor("AQUA");
             for (const song of player.queue) {
-                queueEmbed.addField(song.title, song.author);
+		const title = song.title ? song.title : "Untitled Track";
+		const author = song.author ? song.author : "No author";
+                queueEmbed.addField(title, author);
             }
             interaction.reply({ embeds: [queueEmbed] });
 

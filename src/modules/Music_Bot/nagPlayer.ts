@@ -64,7 +64,7 @@ export class nagPlayer {
         return this.playingQueue;
     }
 
-    get queue(): Array<Song> {
+    get queue(): Song[] {
         return this._queue;
     }
 
@@ -96,7 +96,8 @@ export class nagPlayer {
 
     public getQueuePaginated(page: number, page_size: number)
     : Array<Song> | undefined {
-        if (page > (this.queue.length / page_size)) {
+	console.log(Math.ceil(this.queue.length / page_size))
+        if (page > Math.ceil(this.queue.length / page_size)) {
             return undefined;
         }
         return this.queue.slice((page - 1) * page_size, page * page_size);
@@ -245,7 +246,7 @@ export class nagPlayer {
 	    case "sp_track": {
 		const spData = await spotify(request);
 		if(spData instanceof SpotifyTrack) {
-		    const song = await search(`${spData.name} ${spData.author}`, {limit: 1});
+		    const song = await search(`${spData.title} ${spData.author}`, {limit: 1});
 		    this._queue.push(song[0]);
 		    return true;
 		}
@@ -257,18 +258,22 @@ export class nagPlayer {
 		    await spData.fetch();
 		    for(let i = 1; i <= spData.total_pages; i++) {
 			console.log(spData.total_pages)
-			const tracks: Song[] | undefined = spData.page(1);
+			const tracks: Song[] | undefined = spData.page(i);
 			if(tracks) {
-			    const yttracks = await Promise.all(tracks.map(async t => {
+			    await Promise.all(tracks.map(async t => {
 				try {
-				    t = (await search(`${t.title} ${t.author}`, {limit: 1}))[0]
+				    const title = t.title ? t.title : "Untitled Track";
+				    const author = t.author ? t.author : "Unknown author";
+				    const album = t.albumName ? t.albumName : "No album";
+				    const link = (await search(`${title} ${author}`, {limit: 1}))[0].url;
+				    const song: Song = {url: link, albumName: album, title: title, author}
+				    this._queue.push(song);
 				    return t;
 				}
 				catch(err) {
 				    throw err;
 				}
 			    }))
-			    this._queue.push(...yttracks);
 			}
 		    }
 		    return true;
