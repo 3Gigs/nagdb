@@ -140,7 +140,6 @@ export class nagPlayer {
     public leaveChannel(): nagPlayer {
         this.connection?.destroy();
         nagPlayer.voiceConnections.delete(this.vc);
-        console.log(nagPlayer.getInstance(this.vc));
         return this;
     }
 
@@ -246,8 +245,11 @@ export class nagPlayer {
 	    case "sp_track": {
 		const spData = await spotify(request);
 		if(spData instanceof SpotifyTrack) {
-		    const song = await search(`${spData.title} ${spData.author}`, {limit: 1});
-		    this._queue.push(song[0]);
+		    const title = spData.title ? spData.title : "Untitled Track";
+		    const author = spData.author ? spData.author : "Unknown Author";
+		    const link = (await search(`${title} ${author}`, {limit: 1}))[0].url;
+		    const song = {title, author, url: link}
+		    this._queue.push(song);
 		    return true;
 		}
 		return false;
