@@ -10,6 +10,8 @@ import {
     NoSubscriberBehavior,
     PlayerSubscription,
     VoiceConnection,
+    VoiceConnectionStatus,
+    entersState
 } from "@discordjs/voice";
 import { VoiceChannel } from "discord.js";
 import { playlist_info,
@@ -80,17 +82,30 @@ export class nagPlayer {
      * @memberof nagPlayer
      */
     private joinChannel(vc : VoiceChannel): nagPlayer | undefined {
+	let connection: VoiceConnection;
+
         if (nagPlayer.voiceConnections.has(vc)) {
             return nagPlayer.voiceConnections.get(vc);
         }
         else {
-            joinVoiceChannel({
+            connection = joinVoiceChannel({
                 channelId: vc.id,
                 guildId: vc.guild.id,
                 adapterCreator: vc.guild
                     .voiceAdapterCreator as DiscordGatewayAdapterCreator,
             });
             nagPlayer.voiceConnections.set(vc, this);
+	    connection.on(VoiceConnectionStatus.Disconnected, async () => {
+		try {
+		    await Promise.race([
+			entersState(connection, VoiceConnectionStatus.Signalling, 5_000),
+			entersState(connection, VoiceConnectionStatus.Connecting, 5_000),
+		    ])
+		} catch(e) {
+		    connection.destroy();
+		    nagPlayer.voiceConnections.delete(vc);
+		}
+	    })
             return this;
         }
     }
