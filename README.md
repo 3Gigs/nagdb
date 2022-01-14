@@ -17,6 +17,16 @@ A Discord Bot written in Discord.js and Typescript
 ```  
 5. Run bot  
 ``` node . ```  
+### The Docker Way
+1. Make sure Docker is [installed](https://docs.docker.com/)  
+2. Build docker image  
+```sh
+docker build . -t nagdb
+```
+3. Run
+```sh
+docker run nagdb --name "nagdb_bot"
+```
 
 ## Generate documentation
 ``` npx typedoc src/* ```  
