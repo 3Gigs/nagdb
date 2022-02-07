@@ -130,7 +130,8 @@ export class nagPlayer {
     */
     public getQueuePaginated(page: number, page_size: number)
     : Array<Song> | undefined {
-        if (page > Math.ceil(this.queue.length / page_size)) {
+        console.log("Page: " + page);
+        if (page > Math.ceil(this.queue.length / page_size) || page <= 0) {
             return undefined;
         }
         return this.queue.slice((page - 1) * page_size, page * page_size);
