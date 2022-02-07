@@ -1,0 +1,4 @@
+bot:
+  image: "nagdb"
+  volumes: 
+    - ./.data/:/nagdb/.data

@@ -11,21 +11,21 @@ import {
     PlayerSubscription,
     VoiceConnection,
     VoiceConnectionStatus,
-    entersState
+    entersState,
 } from "@discordjs/voice";
 import { VoiceChannel } from "discord.js";
 import { playlist_info,
-	 search,
-	 stream,
-	 video_basic_info,
-	 validate,
-	 Song,
-	 spotify,
-	 SpotifyTrack,
-	 SpotifyPlaylist,
-	 SpotifyAlbum,
-         refreshToken,
-         is_expired } from "nagdl";
+    search,
+    stream,
+    video_basic_info,
+    validate,
+    Song,
+    spotify,
+    SpotifyTrack,
+    SpotifyPlaylist,
+    SpotifyAlbum,
+    refreshToken,
+    is_expired } from "nagdl";
 
 /**
  * **Discord voice channel bot music player implementation**
@@ -84,7 +84,7 @@ export class nagPlayer {
      * @memberof nagPlayer
      */
     private joinChannel(vc : VoiceChannel): nagPlayer | undefined {
-	let connection: VoiceConnection;
+        let connection: VoiceConnection;
 
         if (nagPlayer.voiceConnections.has(vc)) {
             return nagPlayer.voiceConnections.get(vc);
@@ -97,24 +97,32 @@ export class nagPlayer {
                     .voiceAdapterCreator as DiscordGatewayAdapterCreator,
             });
             nagPlayer.voiceConnections.set(vc, this);
-	    connection.on(VoiceConnectionStatus.Disconnected, async () => {
-		try {
-		    await Promise.race([
-			entersState(connection, VoiceConnectionStatus.Signalling, 5_000),
-			entersState(connection, VoiceConnectionStatus.Connecting, 5_000),
-		    ])
-		} catch(e) {
-		    connection.destroy();
-		    nagPlayer.voiceConnections.delete(vc);
-		}
-	    })
+            connection.on(VoiceConnectionStatus.Disconnected, async () => {
+                try {
+                    await Promise.race([
+                        entersState(
+                            connection,
+                            VoiceConnectionStatus.Signalling,
+                            5_000),
+                        entersState(
+                            connection,
+                            VoiceConnectionStatus.Connecting,
+                            5_000),
+                    ]);
+                }
+                catch (e) {
+                    connection.destroy();
+                    nagPlayer.voiceConnections.delete(vc);
+                }
+            });
             return this;
         }
     }
 
     /**
-     * Gives a portion a portion of the queue, based on given page size and page number
-     * @param page - The page number 
+     * Gives a portion a portion of the queue,
+     * based on given page size and page number
+     * @param page - The page number
      * @param page_size - The page size, used to paginate the queue
      *
      * @returns An array of Songs on given page
@@ -231,8 +239,15 @@ export class nagPlayer {
             }
         };
 
+        // Refresh token if needed
+        if (is_expired()) {
+            refreshToken();
+        }
         await p();
         this.playerMusic?.on(AudioPlayerStatus.Idle, async () => {
+            if (is_expired()) {
+                refreshToken();
+            }
             p();
         });
         this.playerMusic?.on("error", (e) => {
@@ -253,71 +268,74 @@ export class nagPlayer {
         if (!reqType) {
             return false;
         }
-	switch(reqType) {
-	    case "yt_playlist": {
-		const pl = await playlist_info(request);
-		await pl.fetch();
-		for (let i = 1; i <= pl.total_pages; i++) {
-		    this._queue.push(...pl.page(i));
-		}
-		return true;
-	    }
-  	    case "yt_video": {
-		const vid = (await video_basic_info(request)).video_details;
-		this._queue.push(vid);
-		return true;
-	    }
-	    case "sp_track": {
-		// Refresh token if needed
-		if(is_expired())
-		    refreshToken();
-		const spData = await spotify(request);
-		if(spData instanceof SpotifyTrack) {
-		    const title = spData.title ? spData.title : "Untitled Track";
-		    const author = spData.author ? spData.author : "Unknown Author";
-		    const link = (await search(`${title} ${author}`, {limit: 1}))[0].url;
-		    const song = {title, author, url: link}
-		    this._queue.push(song);
-		    return true;
-		}
-		return false;
-	    }
-	    case "sp_playlist":
-	    case "sp_album": 
-		// Refresh token if needed
-		if(is_expired())
-		    refreshToken();
-		const spData = await spotify(request);
-		if(spData instanceof SpotifyAlbum || spData instanceof SpotifyPlaylist) {
-		    await spData.fetch();
-		    for(let i = 1; i <= spData.total_pages; i++) {
-			const tracks: Song[] | undefined = spData.page(i);
-			if(tracks) {
-			    await Promise.all(tracks.map(async t => {
-				try {
-				    const title = t.title ? t.title : "Untitled Track";
-				    const author = t.author ? t.author : "Unknown author";
-				    const album = t.albumName ? t.albumName : "No album";
-				    const result: string | undefined = (await search(`${title} ${author}`, {limit: 1}))[0]?.url
-				    if(result) {
-					const song: Song = {url: result, albumName: album, title: title, author}
-					this._queue.push(song);
-					return t;
-				    }
-				}
-				catch(err) {
-				    throw err;
-				}
-			    }))
-			}
-		    }
-		    return true;
-		}
-		return false;
-	    default: {
-		return false;
-	    }
-	}
+        switch (reqType) {
+        case "yt_playlist": {
+            const pl = await playlist_info(request);
+            await pl.fetch();
+            for (let i = 1; i <= pl.total_pages; i++) {
+                this._queue.push(...pl.page(i));
+            }
+            return true;
+        }
+        case "yt_video": {
+            const vid = (await video_basic_info(request)).video_details;
+            this._queue.push(vid);
+            return true;
+        }
+        case "sp_track": {
+            // Refresh token if needed
+            if (is_expired()) {refreshToken();}
+            const spData = await spotify(request);
+            if (spData instanceof SpotifyTrack) {
+                const title = spData.title ? spData.title : "Untitled Track";
+                const author = spData.author ? spData.author : "Unknown Author";
+                const link = (await search(`${title} ${author}`,
+                    { limit: 1 }))[0].url;
+                const song = { title, author, url: link };
+                this._queue.push(song);
+                return true;
+            }
+            return false;
+        }
+        case "sp_playlist":
+        case "sp_album":
+            // eslint-disable-next-line no-case-declarations
+            const spData = await spotify(request);
+            if (spData instanceof SpotifyAlbum
+                || spData instanceof SpotifyPlaylist) {
+                await spData.fetch();
+                for (let i = 1; i <= spData.total_pages; i++) {
+                    const tracks: Song[] | undefined = spData.page(i);
+                    if (tracks) {
+                        await Promise.all(tracks.map(async t => {
+                            const title = t.title ? t.title : "Untitled Track";
+                            const author = t.author
+                                ? t.author : "Unknown author";
+                            const album = t.albumName
+                                ? t.albumName : "No album";
+                            const result: string | undefined =
+                                (await search(`${title} ${author}`,
+                                    { limit: 1 }))[0]?.url;
+                            if (result) {
+                                const song: Song = {
+                                    url: result,
+                                    albumName: album,
+                                    title: title,
+                                    author,
+                                };
+                                this._queue.push(song);
+                                return t;
+                            }
+                        }));
+                    }
+                }
+                return true;
+            }
+            return false;
+        default: {
+            return false;
+        }
+        }
     }
     public skipMusic(): void {
         if (!this.playingQueue) {
