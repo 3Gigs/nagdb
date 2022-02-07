@@ -7,8 +7,6 @@ RUN ["apk", "add", "libsodium", "make", "libtool", "autoconf", "automake", "pyth
 WORKDIR nagdb/
 COPY package*.json ./
 COPY ./build/ ./build/
-COPY ./.data ./.data
-
 RUN ["npm", "install"]
 CMD ["node", "."]
 
