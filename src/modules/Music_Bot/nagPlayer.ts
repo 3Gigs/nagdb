@@ -246,7 +246,7 @@ export class nagPlayer {
         await p();
         this.playerMusic?.on(AudioPlayerStatus.Idle, async () => {
             if (is_expired()) {
-                refreshToken();
+                await refreshToken();
             }
             p();
         });
