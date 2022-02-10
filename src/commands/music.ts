@@ -34,12 +34,12 @@ export const nowPlayingEmbedCreator =
             if (video.thumbnailUrl) {
                 embed.setThumbnail(video.thumbnailUrl);
             }
-	    if(video.duration) {
-		embed.addFields({
-		    name: "Duration",
-		    value: video.duration.durationFormatted,
-		})
-	    };
+            if (video.duration) {
+                embed.addFields({
+                    name: "Duration",
+                    value: video.duration.durationFormatted,
+                });
+            }
 
             embed.setURL(video.url);
             return embed;
@@ -106,7 +106,7 @@ module.exports = {
                 await interaction.reply("No input found!");
                 return;
             }
-	    interaction.deferReply();
+            interaction.deferReply();
             // If input is not a link
             if (!await player.addSongsFromUrl(input)) {
                 await interaction.followUp("Not a link!");
@@ -140,6 +140,8 @@ module.exports = {
             const page = interaction.options.getInteger("page");
             if (!page) {
                 console.warn("Page passed was null!");
+                interaction.reply({ embeds: [new MessageEmbed()
+                    .setTitle("❌ Invalid page number")] });
                 return;
             }
             const songList = player.getQueuePaginated(page, PAGE_SIZE);
@@ -153,8 +155,8 @@ module.exports = {
                     + Math.ceil((player.queue.length / PAGE_SIZE)) + ")")
                 .setColor("AQUA");
             for (const song of songList) {
-		const title = song.title ? song.title : "Untitled Track";
-		const author = song.author ? song.author : "No author";
+                const title = song.title ? song.title : "Untitled Track";
+                const author = song.author ? song.author : "No author";
                 queueEmbed.addField(title, author);
             }
             interaction.reply({ embeds: [queueEmbed] });
