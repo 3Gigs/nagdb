@@ -127,9 +127,10 @@ module.exports = {
         else if (interaction.options.getSubcommand() === "skip") {
             if (!player.queue.length) {
                 await interaction.reply("Queue is empty!");
-                return;
             }
-            await interaction.reply("Skipping song...");
+            else {
+                await interaction.reply("Skipping song...");
+            }
             player.skipMusic();
         }
         else if (interaction.options.getSubcommand() === "stop") {

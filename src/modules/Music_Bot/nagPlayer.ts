@@ -225,10 +225,16 @@ export class nagPlayer {
                 if (func) {
                     func(song);
                 }
-                const s = await stream(song.url);
-                this.playSong(createAudioResource(s.stream, {
-                    inputType: s.type,
-                }));
+                if (await validate(song.url)) {
+                    const s = await stream(song.url);
+                    this.playSong(createAudioResource(s.stream, {
+                        inputType: s.type,
+                    }));
+                }
+                else {
+                    console.log("Skipped invalid song...");
+                    return;
+                }
             }
             else {
                 this.pausePlayer = false;

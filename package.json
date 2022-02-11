@@ -5,7 +5,8 @@
   "main": "./build/src/nagdb.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint . --ext .ts"
+    "lint": "eslint . --ext .ts",
+    "start": "node ."
   },
   "repository": {
     "type": "git",
