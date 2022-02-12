@@ -226,13 +226,19 @@ export class nagPlayer {
                     func(song);
                 }
                 if (await validate(song.url)) {
-                    const s = await stream(song.url);
-                    this.playSong(createAudioResource(s.stream, {
-                        inputType: s.type,
-                    }));
+                    try {
+                        const s = await stream(song.url);
+                        this.playSong(createAudioResource(s.stream, {
+                            inputType: s.type,
+                        }));
+                    }
+                    catch (e) {
+                        console.log(e);
+                        p();
+                    }
                 }
                 else {
-                    console.log("Skipped invalid song...");
+                    console.log("Skipped invalid song link...");
                     return;
                 }
             }
