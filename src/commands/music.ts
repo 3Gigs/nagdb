@@ -118,7 +118,7 @@ module.exports = {
         }
         else if (interaction.options.getSubcommand() === "nowplaying") {
             if (!player.nowPlaying) {
-                await interaction.reply("No songs playing!");
+                await interaction.editReply("No songs playing!");
                 return;
             }
             interaction.reply({ embeds:
@@ -126,15 +126,18 @@ module.exports = {
         }
         else if (interaction.options.getSubcommand() === "skip") {
             if (!player.queue.length) {
-                await interaction.reply("Queue is empty!");
+                await interaction.deferReply();
+                await interaction.editReply("Queue is empty!");
             }
             else {
-                await interaction.reply("Skipping song...");
+                await interaction.deferReply();
+                await interaction.editReply("Skipping song...");
             }
             player.skipMusic();
         }
         else if (interaction.options.getSubcommand() === "stop") {
-            await interaction.reply("Stopping player");
+            await interaction.deferReply();
+            await interaction.editReply("Stopping player");
             player.leaveChannel();
         }
         else if (interaction.options.getSubcommand() === "queue") {
