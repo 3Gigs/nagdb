@@ -112,6 +112,8 @@ export class commandHandler {
                 await command.execute(interaction);
             }
             catch (error) {
+                interaction.reply(`There was an error while executing this 
+                    command!`);
                 console.log(error);
             }
         });
