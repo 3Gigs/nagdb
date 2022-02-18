@@ -19,7 +19,11 @@ export class Server {
         this.app.get("/", (req, res) => {
             console.log(`${path.join(__dirname, "routes", "get", "index")}`);
             res.sendFile(path
-                .resolve("./www/index.html"));
+                .resolve("./www/src/html/index.html"));
+        });
+
+        this.app.get("/output.css", (req, res) => {
+            res.sendFile(path.resolve("./www/dist/output.css"));
         });
     }
 }
