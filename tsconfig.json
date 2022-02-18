@@ -12,6 +12,6 @@
         "experimentalDecorators": true,
         "moduleResolution": "Node",
     },
-    "include": ["src/*", "src/commands/*", "src/modules"],
+    "include": ["src/**/*", "src/*"],
     "exclude": ["node_modules", "docs"]
 }

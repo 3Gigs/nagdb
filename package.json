@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/3Gigs/nagdb#readme",
   "devDependencies": {
+    "@types/express": "^4.17.13",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
     "eslint": "^7.32.0",
@@ -33,6 +34,7 @@
     "@discordjs/voice": "^0.6.0",
     "discord-api-types": "^0.22.0",
     "discord.js": "^13.3.1",
+    "express": "^4.17.3",
     "ffmpeg-static": "^4.4.0",
     "libsodium-wrappers": "^0.7.9",
     "nagdl": "^2.3.1",

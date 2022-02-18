@@ -1,6 +1,6 @@
 import { Client, Intents } from "discord.js";
 import { token } from "../config.json";
-import { commandHandler } from "./commandHandler";
+import { commandHandler, loadStartup } from "./commandHandler";
 import { is_expired, refreshToken, authorization } from "nagdl";
 import { readFileSync } from "fs";
 import { createInterface } from "readline";
@@ -11,7 +11,9 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS,
 
 const cmdHandler = commandHandler.construct(client);
 
-client.once("ready", () => {
+client.once("ready", async () => {
+    const startup = new loadStartup();
+    await startup.load();
     cmdHandler.attachCommandListener();
 });
 
