@@ -120,3 +120,27 @@ export class commandHandler {
     }
 }
 
+/**
+ * Cacner
+ */
+export class loadStartup {
+    private hooks: Collection<string, unknown>;
+
+    /**
+     * Load startup
+     */
+    constructor() {
+        this.hooks = new Collection();
+    }
+
+    async load(): Promise<void> {
+        console.log("aids");
+        const files = fs.readdirSync(__dirname + "/startup");
+
+        for (const file of files) {
+            const xd = require(__dirname + "/startup/" + file);
+            this.hooks.set(file, xd.toJSON);
+            await xd.execute();
+        }
+    }
+}

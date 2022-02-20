@@ -11,8 +11,9 @@ A Discord Bot written in Discord.js and Typescript
 ```  
 {
     "clientId": "your client id", 
-    "guildId": "your guild id for registering local slash commands",
-    "token": "your bot token"
+    "guildId":  "your guild id for registering local slash commands",
+    "token":    "your bot token",
+    "port":     "web server port" 
 }
 ```  
 5. Run bot  

@@ -12,6 +12,6 @@
         "experimentalDecorators": true,
         "moduleResolution": "Node",
     },
-    "include": ["src/*", "src/commands/*", "src/modules"],
+    "include": ["nagdb/**/*", "nagdb/*", "Web_Server", "Web_Server/**/* Web_Server/*"],
     "exclude": ["node_modules", "docs"]
 }
