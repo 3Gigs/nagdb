@@ -28,19 +28,45 @@ export class Server {
 
             res.json(about);
         });
-        this.app.get("/api/music/:arg", (req, res) => {
+        this.app.get("/api/music/:arg/:opt1?/:opt2?", (req, res) => {
             const serverId = req.header("discordServerId");
             if (!serverId) {
-                res.send(`Bot is not connected to any Voice Chat in this 
-                    server!`);
+                res.send("You must specify a discordServerId header!");
                 res.statusCode = 404;
                 return;
             }
-            const arg = req.params.arg;
+            const arg = req.params.arg.toLowerCase();
+            const opt1 = req.params.opt1?.toLowerCase()
+                ? parseInt(req.params.opt1.toLowerCase()) : undefined;
+            const opt2 = req.params.opt2?.toLowerCase()
+                ? parseInt(req.params.opt2.toLowerCase()) : undefined;
             const instance = nagPlayer.getInstance(serverId);
+
+            if (!instance) {
+                res.send(`nagdb is not connected to any voice channel in 
+                    specified server!`);
+                res.statusCode = 404;
+                return;
+            }
 
             switch (arg) {
             case "nowplaying":
+                res.send(instance.nowPlaying);
+                break;
+            case "queue":
+                if (opt1) {
+                    const pageSize = opt2 ? opt2 : 10;
+                    const q = instance.getQueuePaginated(opt1, pageSize);
+                    if (q) {
+                        res.json(instance.getQueuePaginated(opt1, pageSize));
+                    }
+                    else {
+                        res.send("Page number invalid!");
+                        res.statusCode = 404;
+                    }
+                    break;
+                }
+                res.json(instance.queue);
                 break;
             }
         });

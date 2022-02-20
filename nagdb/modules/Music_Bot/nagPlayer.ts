@@ -86,8 +86,8 @@ export class nagPlayer {
     private joinChannel(vc : VoiceChannel): nagPlayer | undefined {
         let connection: VoiceConnection;
 
-        if (!nagPlayer.voiceConnections.has(vc.guildId)) {
-            return undefined;
+        if (nagPlayer.voiceConnections.has(vc.guildId)) {
+            return nagPlayer.getInstance(vc.guildId);
         }
         else {
             connection = joinVoiceChannel({
