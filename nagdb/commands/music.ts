@@ -95,7 +95,7 @@ module.exports = {
             await interaction.reply("You're not in a valid voice channel!");
             return;
         }
-        let player = nagPlayer.getInstance(vc);
+        let player = nagPlayer.getInstance(vc.guildId);
         if (!player) {
             player = new nagPlayer(vc);
         }

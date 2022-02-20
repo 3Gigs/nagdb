@@ -34,7 +34,7 @@ import { playlist_info,
  * @class nagPlayer
  */
 export class nagPlayer {
-    private static voiceConnections = new Map<VoiceChannel, nagPlayer>();
+    private static voiceConnections = new Map<string, nagPlayer>();
     private vc: VoiceChannel;
     private subscription : PlayerSubscription | undefined;
     private playerMusic : AudioPlayer | undefined;
@@ -86,8 +86,8 @@ export class nagPlayer {
     private joinChannel(vc : VoiceChannel): nagPlayer | undefined {
         let connection: VoiceConnection;
 
-        if (nagPlayer.voiceConnections.has(vc)) {
-            return nagPlayer.voiceConnections.get(vc);
+        if (!nagPlayer.voiceConnections.has(vc.guildId)) {
+            return undefined;
         }
         else {
             connection = joinVoiceChannel({
@@ -96,7 +96,7 @@ export class nagPlayer {
                 adapterCreator: vc.guild
                     .voiceAdapterCreator as DiscordGatewayAdapterCreator,
             });
-            nagPlayer.voiceConnections.set(vc, this);
+            nagPlayer.voiceConnections.set(vc.guildId, this);
             connection.on(VoiceConnectionStatus.Disconnected, async () => {
                 try {
                     await Promise.race([
@@ -112,7 +112,7 @@ export class nagPlayer {
                 }
                 catch (e) {
                     connection.destroy();
-                    nagPlayer.voiceConnections.delete(vc);
+                    nagPlayer.voiceConnections.delete(vc.guildId);
                 }
             });
             return this;
@@ -143,7 +143,7 @@ export class nagPlayer {
      * already exists for voice channel
      */
     public static hasInstance(vc: VoiceChannel): boolean {
-        if (nagPlayer.voiceConnections.has(vc)) {
+        if (nagPlayer.voiceConnections.has(vc.guildId)) {
             return true;
         }
         else {
@@ -156,9 +156,9 @@ export class nagPlayer {
      * @param vc The voice channel
      * @returns The nagPlayer instance, or undefined if it doesn't exist
      */
-    public static getInstance(vc: VoiceChannel): nagPlayer | undefined {
-        if (nagPlayer.voiceConnections.has(vc)) {
-            return nagPlayer.voiceConnections.get(vc);
+    public static getInstance(guildId: string): nagPlayer | undefined {
+        if (nagPlayer.voiceConnections.has(guildId)) {
+            return nagPlayer.voiceConnections.get(guildId);
         }
         else {
             return undefined;
@@ -173,7 +173,7 @@ export class nagPlayer {
      */
     public leaveChannel(): nagPlayer {
         this.connection?.destroy();
-        nagPlayer.voiceConnections.delete(this.vc);
+        nagPlayer.voiceConnections.delete(this.vc.guildId);
         return this;
     }
 
