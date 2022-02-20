@@ -8,7 +8,7 @@
     "lint": "eslint . --ext .ts",
     "start": "node build/nagdb/nagdb.js",
     "tailWatch": "npx tailwindcss -i ./www/src/input.css -o ./www/dist/output.css --watch",
-    "build": "docker build -t \"nagdb\" ."
+    "build": "docker build -t \"nagdb\" .",
   },
   "repository": {
     "type": "git",
