@@ -1,10 +1,11 @@
 import express from "express";
 import { port, name } from "../config.json";
+import cors from "cors";
 import { nagPlayer } from "../nagdb/modules/Music_Bot/nagPlayer";
 
 
 export class Server {
-    private app
+    private app;
     private port;
 
     constructor() {
@@ -16,6 +17,10 @@ export class Server {
         this.app.listen(this.port, () => {
             console.log(`Server started at localhost:${this.port}`);
         });
+
+        this.app.use(cors({
+            origin: "*",
+        }));
 
         this.app.get("/api", (req, res) => {
             res.send(`<h1>nagdb on ${name}</h1>`);
