@@ -8,5 +8,5 @@ WORKDIR nagdb/
 COPY package*.json ./
 COPY ./build/ ./build/
 RUN ["npm", "install"]
-CMD ["node", "."]
+CMD ["npm", "run", "start"]
 
